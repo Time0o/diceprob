@@ -7,13 +7,13 @@ import Data.Void (Void)
 import Text.Megaparsec (ParseErrorBundle, errorBundlePretty, runParser)
 
 import Eval (eval)
-import Grammar (Expr)
-import Parser (expr)
+import Grammar (Stmt)
+import Parser (stmt)
 
-type AST = Either (ParseErrorBundle Text Void) Expr
+type AST = Either (ParseErrorBundle Text Void) Stmt
 
 buildAST :: (String, String) -> AST
-buildAST (scriptName, scriptContent) = runParser expr scriptName (fromString scriptContent)
+buildAST (scriptName, scriptContent) = runParser stmt scriptName (fromString scriptContent)
 
 evalAST :: AST -> String
-evalAST ast = either errorBundlePretty (show . eval) ast
+evalAST ast = either errorBundlePretty show ast -- XXX do something with evaluation
