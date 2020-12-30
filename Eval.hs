@@ -8,12 +8,12 @@ import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import Data.HashMap.Strict (HashMap, empty, insert, lookup)
 
-import Bool
+import Dice
 import Grammar
 
-type Output = (Integer, Maybe Text)
+type Output = (Dice, Maybe Text)
 
-type Eval = State (HashMap Text Integer)
+type Eval = State (HashMap Text Dice)
 
 eval :: Stmt -> [Output]
 eval stmt = fst $ runState (eval' stmt) empty
@@ -27,34 +27,35 @@ eval'' (OutputExpr expr)     = Just <$> evalOutputExpr expr
 
 evalAssignmentExpr :: AssignmentExpr -> Eval ()
 evalAssignmentExpr (Assignment var expr) = do
-  val <- evalIntegerExpr expr
+  val <- evalDiceExpr expr
   modify (insert var val)
 
 evalOutputExpr :: OutputExpr -> Eval Output
 evalOutputExpr (Output expr name) = do
-  val <- evalIntegerExpr expr
+  val <- evalDiceExpr expr
   return (val, name)
 
-evalIntegerExpr :: IntegerExpr -> Eval Integer
-evalIntegerExpr expr = case expr of
-  Constant n     -> return n
-  Variable v -> do
+evalDiceExpr :: DiceExpr -> Eval Dice
+evalDiceExpr expr = case expr of
+  DiceLiteral d     -> return d
+  IntegerLiteral n  -> return $ fromInteger n
+  Variable v        -> do
     env <- get
     case lookup v env of
-      Just n -> return n
+      Just d -> return d
       Nothing -> error $ "variable '" ++ show v ++ "' not defined"
-  IntegerNegation e    -> negate   <$> evalIntegerExpr e
-  Sum e1 e2            -> (+)      <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
-  Subtraction e1 e2    -> (-)      <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
-  Product e1 e2        -> (*)      <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
-  Division e1 e2       -> div      <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
-  Exponentiation e1 e2 -> (^)      <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
-  Equal e1 e2          -> equal    <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
-  NotEqual e1 e2       -> notEqual <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
-  Smaller e1 e2        -> smaller  <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
-  Greater e1 e2        -> greater  <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
-  AtLeast e1 e2        -> atLeast  <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
-  AtMost e1 e2         -> atMost   <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
-  LogicalNegation e    -> not'     <$> evalIntegerExpr e
-  LogicalAnd e1 e2     -> and'     <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
-  LogicalOr e1 e2      -> or'      <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
+  Negation e           -> negate       <$> evalDiceExpr e
+  Sum e1 e2            -> (+)          <$> evalDiceExpr e1 <*> evalDiceExpr e2
+  Subtraction e1 e2    -> (-)          <$> evalDiceExpr e1 <*> evalDiceExpr e2
+  Product e1 e2        -> (*)          <$> evalDiceExpr e1 <*> evalDiceExpr e2
+  Division e1 e2       -> (/)          <$> evalDiceExpr e1 <*> evalDiceExpr e2
+  Exponentiation e1 e2 -> dicePower    <$> evalDiceExpr e1 <*> evalDiceExpr e2
+  Equal e1 e2          -> diceEqual    <$> evalDiceExpr e1 <*> evalDiceExpr e2
+  NotEqual e1 e2       -> diceNotEqual <$> evalDiceExpr e1 <*> evalDiceExpr e2
+  Smaller e1 e2        -> diceSmaller  <$> evalDiceExpr e1 <*> evalDiceExpr e2
+  Greater e1 e2        -> diceGreater  <$> evalDiceExpr e1 <*> evalDiceExpr e2
+  AtLeast e1 e2        -> diceAtLeast  <$> evalDiceExpr e1 <*> evalDiceExpr e2
+  AtMost e1 e2         -> diceAtMost   <$> evalDiceExpr e1 <*> evalDiceExpr e2
+  Not e                -> diceNot      <$> evalDiceExpr e
+  And e1 e2            -> diceAnd      <$> evalDiceExpr e1 <*> evalDiceExpr e2
+  Or e1 e2             -> diceOr       <$> evalDiceExpr e1 <*> evalDiceExpr e2

@@ -14,6 +14,7 @@ import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as Lex
 
+import Dice (Dice, dn)
 import Grammar
 
 -- Parser
@@ -32,6 +33,13 @@ lexeme :: Parser a -> Parser a
 lexeme = Lex.lexeme spaceOrComment
 
 -- Basic
+
+toDice :: Maybe Integer -> Integer -> Dice
+toDice (Just num) = sum . replicate (fromIntegral num) . dn
+toDice Nothing    = dn
+
+diceLiteral :: Parser Dice
+diceLiteral = lexeme $ toDice <$> optional (Lex.decimal) <* symbol "d" <*> Lex.decimal
 
 integerLiteral :: Parser Integer
 integerLiteral = lexeme Lex.decimal
@@ -68,37 +76,40 @@ stmt' :: Parser Stmt
 stmt' = AssignmentExpr <$> assignmentExpr
       <|> OutputExpr <$> outputExpr
 
--- Integer Expressions
+-- Dice Expressions
 
-integerExpr :: Parser IntegerExpr
-integerExpr = makeExprParser integerTerm integerOperatorTable
+diceExpr :: Parser DiceExpr
+diceExpr = makeExprParser diceTerm diceOperatorTable
 
-integerTerm :: Parser IntegerExpr
-integerTerm = (parenthesised integerExpr)
-            <|> Constant <$> integerLiteral
-            <|> Variable <$> variable
+diceTerm :: Parser DiceExpr
+diceTerm = parenthesised diceExpr
+         <|> literal
+         <|> Variable <$> variable
+  where literal = try dice <|> integer
+        dice    = DiceLiteral <$> diceLiteral
+        integer = IntegerLiteral <$> integerLiteral
 
-integerOperatorTable :: [[Operator Parser IntegerExpr]]
-integerOperatorTable = [[unaryOp "+" id,
-                         unaryOp "-" IntegerNegation,
-                         unaryOp "!" LogicalNegation],
-                        [binaryOp "^" Exponentiation],
-                        [binaryOp "*" Product, binaryOp "/" Division],
-                        [binaryOp "+" Sum, binaryOp "-" Subtraction],
-                        [binaryOp "=" Equal,
-                          binaryOp "!=" NotEqual,
-                          binaryOp "<" Smaller,
-                          binaryOp ">" Greater,
-                          binaryOp ">=" AtLeast,
-                          binaryOp "<=" AtMost],
-                        [binaryOp "&" LogicalAnd, binaryOp "|" LogicalOr]]
+diceOperatorTable :: [[Operator Parser DiceExpr]]
+diceOperatorTable = [[unaryOp "+" id,
+                      unaryOp "-" Negation,
+                      unaryOp "!" Not],
+                     [binaryOp "^" Exponentiation],
+                     [binaryOp "*" Product, binaryOp "/" Division],
+                     [binaryOp "+" Sum, binaryOp "-" Subtraction],
+                     [binaryOp "=" Equal,
+                       binaryOp "!=" NotEqual,
+                       binaryOp "<" Smaller,
+                       binaryOp ">" Greater,
+                       binaryOp ">=" AtLeast,
+                       binaryOp "<=" AtMost],
+                     [binaryOp "&" And, binaryOp "|" Or]]
 
 -- Assignment
 
 assignmentExpr :: Parser AssignmentExpr
-assignmentExpr = Assignment <$> variable <* symbol ":" <*> integerExpr
+assignmentExpr = Assignment <$> variable <* symbol ":" <*> diceExpr
 
 -- Output
 
 outputExpr :: Parser OutputExpr
-outputExpr = Output <$ symbol "output" <*> integerExpr <*> optional (symbol "named" *> stringLiteral)
+outputExpr = Output <$ symbol "output" <*> diceExpr <*> optional (symbol "named" *> stringLiteral)
