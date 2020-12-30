@@ -52,7 +52,7 @@ stmt = do
     xs -> Sequence xs
 
 stmt' :: Parser Stmt
-stmt' = AssignmentExpr <$> assignmentExpr
+stmt' = AssignmentExpr <$> assignmentExpr <|> OutputExpr <$> outputExpr
 
 -- Arithmetic Expressions
 
@@ -82,3 +82,8 @@ operatorTable = [[unaryOp "+" id, unaryOp "-" Negation],
 
 assignmentExpr :: Parser AssignmentExpr
 assignmentExpr = Assignment <$> variable <* symbol ":" <*> arithmeticExpr
+
+-- Output
+
+outputExpr :: Parser OutputExpr
+outputExpr = Output <$ symbol "output" <*> arithmeticExpr

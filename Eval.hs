@@ -1,7 +1,8 @@
 module Eval where
 
-import Control.Monad.Trans.State.Lazy (State, modify, get)
+import Control.Monad.Trans.State.Lazy (State, modify, get, runState)
 
+import Data.Maybe (catMaybes)
 import Data.Text (Text)
 
 import Grammar
@@ -9,9 +10,15 @@ import Grammar
 -- XXX use map instead
 type Eval = State [(Text, Integer)]
 
-eval :: Stmt -> Eval ()
-eval (Sequence stmts)      = mapM_ eval stmts
-eval (AssignmentExpr expr) = evalAssignmentExpr expr
+eval :: Stmt -> [Integer]
+eval stmt = fst $ runState (eval' stmt) []
+
+eval' :: Stmt -> Eval [Integer]
+eval' (Sequence stmts) = catMaybes <$> mapM eval'' stmts
+
+eval'' :: Stmt -> Eval (Maybe Integer)
+eval'' (AssignmentExpr expr) = Nothing <$ evalAssignmentExpr expr
+eval'' (OutputExpr expr)     = Just <$> evalOutputExpr expr
 
 evalArithmeticExpr :: ArithmeticExpr -> Eval Integer
 evalArithmeticExpr expr = case expr of
@@ -32,3 +39,6 @@ evalAssignmentExpr :: AssignmentExpr -> Eval ()
 evalAssignmentExpr (Assignment var expr) = do
   val <- evalArithmeticExpr expr
   modify ((var, val):)
+
+evalOutputExpr :: OutputExpr -> Eval Integer
+evalOutputExpr (Output expr) = evalArithmeticExpr expr

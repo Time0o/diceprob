@@ -6,6 +6,7 @@ import System.Console.CmdArgs
 import System.Exit (die)
 
 import AST (buildAST, debugAST)
+import Eval (eval)
 
 data Diceprob = Diceprob {script :: String}
                 deriving (Show, Data, Typeable)
@@ -30,4 +31,4 @@ main = do
     Nothing -> error "no input file specified"
     Just (script) -> case buildAST script of
       (Left parseError) -> putStrLn . debugAST $ parseError
-      (Right stmt) -> putStrLn . show $ stmt
+      (Right stmt) -> putStrLn . show . eval $ stmt

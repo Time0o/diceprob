@@ -4,6 +4,7 @@ import Data.Text (Text)
 
 data Stmt = Sequence [Stmt]
           | AssignmentExpr AssignmentExpr
+          | OutputExpr OutputExpr
           deriving (Eq, Ord, Show)
 
 data ArithmeticExpr = Constant Integer
@@ -18,3 +19,6 @@ data ArithmeticExpr = Constant Integer
 
 data AssignmentExpr = Assignment Text ArithmeticExpr
                     deriving (Eq, Ord, Show)
+
+data OutputExpr = Output ArithmeticExpr
+                deriving (Eq, Ord, Show)
