@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-missing-methods #-}
+{-# OPTIONS_GHC -Wall -fno-warn-missing-methods #-}
 
 {-# Language FlexibleInstances #-}
 

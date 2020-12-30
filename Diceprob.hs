@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wall #-}
+
 {-# LANGUAGE DeriveDataTypeable #-}
 
 module Diceprob where

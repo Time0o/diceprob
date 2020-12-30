@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wall #-}
+
 module AST where
 
 import Data.String (fromString)

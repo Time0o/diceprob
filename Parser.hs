@@ -1,6 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wall -fno-cse #-}
 
-{-# OPTIONS_GHC -fno-cse #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Parser where
 
