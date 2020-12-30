@@ -5,7 +5,6 @@
 module Diceprob where
 
 import System.Console.CmdArgs
-import System.Exit (die)
 
 import AST (buildAST, debugAST)
 import Eval (eval)
@@ -13,6 +12,7 @@ import Eval (eval)
 data Diceprob = Diceprob {script :: String}
                 deriving (Show, Data, Typeable)
 
+diceprob :: Diceprob
 diceprob = Diceprob{script = def &= args &= typ "SCRIPT"}
          &= help "Run Anydice script locally"
          &= summary "Diceprob v0.0.0, (C) Timo Nicolai"
@@ -31,6 +31,6 @@ main = do
   maybeScript <- readScript
   case maybeScript of
     Nothing -> error "no input file specified"
-    Just (script) -> case buildAST script of
+    Just (buf) -> case buildAST buf of
       (Left parseError) -> putStrLn . debugAST $ parseError
       (Right stmt) -> putStrLn . show . eval $ stmt

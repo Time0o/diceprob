@@ -67,8 +67,8 @@ binaryOp name f = InfixL (f <$ symbol name)
 
 stmt :: Parser Stmt
 stmt = do
-  seq <- some stmt'
-  return $ case seq of
+  stmtSeq <- some stmt'
+  return $ case stmtSeq of
     (x:[]) -> x
     xs -> Sequence xs
 

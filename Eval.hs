@@ -6,7 +6,6 @@ import Prelude hiding (lookup)
 
 import Control.Monad.Trans.State.Lazy (State, modify, get, runState)
 
-import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import Data.HashMap.Strict (HashMap, empty, insert, lookup)
 
@@ -21,11 +20,9 @@ eval :: Stmt -> [Output]
 eval stmt = fst $ runState (eval' stmt) empty
 
 eval' :: Stmt -> Eval [Output]
-eval' (Sequence stmts) = catMaybes <$> mapM eval'' stmts
-
-eval'' :: Stmt -> Eval (Maybe Output)
-eval'' (AssignmentExpr expr) = Nothing <$ evalAssignmentExpr expr
-eval'' (OutputExpr expr)     = Just <$> evalOutputExpr expr
+eval' (Sequence stmts)      = concat   <$> mapM eval' stmts
+eval' (AssignmentExpr expr) = const [] <$> evalAssignmentExpr expr
+eval' (OutputExpr expr)     = (:[])    <$> evalOutputExpr expr
 
 evalAssignmentExpr :: AssignmentExpr -> Eval ()
 evalAssignmentExpr (Assignment var expr) = do

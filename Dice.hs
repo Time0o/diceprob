@@ -30,15 +30,22 @@ dicePower = diceCombine (^)
 fromBool :: Bool -> Integer
 fromBool = fromIntegral . fromEnum
 
+diceEqual, diceNotEqual :: Dice -> Dice -> Dice
 diceEqual    = diceCombine (\x y -> fromBool $ x == y)
 diceNotEqual = diceCombine (\x y -> fromBool $ x /= y)
-diceSmaller  = diceCombine (\x y -> fromBool $ x < y)
-diceGreater  = diceCombine (\x y -> fromBool $ x > y)
-diceAtLeast  = diceCombine (\x y -> fromBool $ x >= y)
-diceAtMost   = diceCombine (\x y -> fromBool $ x <= y)
-diceAnd      = diceCombine (\x y -> fromBool $ (x /= 0) && (y /= 0))
-diceOr       = diceCombine (\x y -> fromBool $ (x /= 0) || (y /= 0))
-diceNot d    = if pmf d == [(0,1.0)] then 1 else 0
+
+diceSmaller, diceGreater, diceAtLeast, diceAtMost :: Dice -> Dice -> Dice
+diceSmaller = diceCombine (\x y -> fromBool $ x < y)
+diceGreater = diceCombine (\x y -> fromBool $ x > y)
+diceAtLeast = diceCombine (\x y -> fromBool $ x >= y)
+diceAtMost  = diceCombine (\x y -> fromBool $ x <= y)
+
+diceAnd, diceOr :: Dice -> Dice -> Dice
+diceAnd = diceCombine (\x y -> fromBool $ (x /= 0) && (y /= 0))
+diceOr  = diceCombine (\x y -> fromBool $ (x /= 0) || (y /= 0))
+
+diceNot :: Dice -> Dice
+diceNot d = if pmf d == [(0,1.0)] then 1 else 0
 
 dn :: Integer -> Dice
 dn n = Dice { pmf = zip [1..n] (replicate (fromIntegral n) (1.0 / fromIntegral n)) }
