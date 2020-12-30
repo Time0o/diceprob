@@ -20,5 +20,5 @@ data ArithmeticExpr = Constant Integer
 data AssignmentExpr = Assignment Text ArithmeticExpr
                     deriving (Eq, Ord, Show)
 
-data OutputExpr = Output ArithmeticExpr
+data OutputExpr = Output ArithmeticExpr (Maybe Text)
                 deriving (Eq, Ord, Show)

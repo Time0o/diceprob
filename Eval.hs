@@ -8,15 +8,17 @@ import Data.Text (Text)
 import Grammar
 
 -- XXX use map instead
+type Output = (Integer, Maybe Text)
+
 type Eval = State [(Text, Integer)]
 
-eval :: Stmt -> [Integer]
+eval :: Stmt -> [Output]
 eval stmt = fst $ runState (eval' stmt) []
 
-eval' :: Stmt -> Eval [Integer]
+eval' :: Stmt -> Eval [Output]
 eval' (Sequence stmts) = catMaybes <$> mapM eval'' stmts
 
-eval'' :: Stmt -> Eval (Maybe Integer)
+eval'' :: Stmt -> Eval (Maybe Output)
 eval'' (AssignmentExpr expr) = Nothing <$ evalAssignmentExpr expr
 eval'' (OutputExpr expr)     = Just <$> evalOutputExpr expr
 
@@ -40,5 +42,7 @@ evalAssignmentExpr (Assignment var expr) = do
   val <- evalArithmeticExpr expr
   modify ((var, val):)
 
-evalOutputExpr :: OutputExpr -> Eval Integer
-evalOutputExpr (Output expr) = evalArithmeticExpr expr
+evalOutputExpr :: OutputExpr -> Eval Output
+evalOutputExpr (Output expr name) = do
+  val <- evalArithmeticExpr expr
+  return (val, name)

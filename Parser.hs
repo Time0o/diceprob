@@ -36,8 +36,11 @@ lexeme = Lex.lexeme spaceOrComment
 parenthesised :: Parser a -> Parser a
 parenthesised = between (symbol "(") (symbol ")")
 
-constant :: Parser Integer
-constant = lexeme Lex.decimal
+integerLiteral :: Parser Integer
+integerLiteral = lexeme Lex.decimal
+
+stringLiteral :: Parser Text
+stringLiteral = lexeme $ fromString <$ char '"' <*> manyTill Lex.charLiteral (char '"')
 
 variable :: Parser Text
 variable = lexeme $ fromString <$> some (upperChar <|> char '_')
@@ -60,7 +63,7 @@ arithmeticExpr :: Parser ArithmeticExpr
 arithmeticExpr = makeExprParser arithmeticTerm operatorTable
 
 arithmeticTerm :: Parser ArithmeticExpr
-arithmeticTerm = (parenthesised arithmeticExpr) <|> Constant <$> constant <|> Variable <$> variable
+arithmeticTerm = (parenthesised arithmeticExpr) <|> Constant <$> integerLiteral <|> Variable <$> variable
 
 unaryOp :: Text
         -> (ArithmeticExpr -> ArithmeticExpr)
@@ -86,4 +89,4 @@ assignmentExpr = Assignment <$> variable <* symbol ":" <*> arithmeticExpr
 -- Output
 
 outputExpr :: Parser OutputExpr
-outputExpr = Output <$ symbol "output" <*> arithmeticExpr
+outputExpr = Output <$ symbol "output" <*> arithmeticExpr <*> optional (symbol "named" *> stringLiteral)
