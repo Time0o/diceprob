@@ -40,7 +40,7 @@ constant :: Parser Integer
 constant = lexeme Lex.decimal
 
 variable :: Parser Text
-variable = fromString <$> some (upperChar <|> char '_')
+variable = lexeme $ fromString <$> some (upperChar <|> char '_')
 
 -- Statments
 
