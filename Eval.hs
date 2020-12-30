@@ -1,19 +1,21 @@
 module Eval where
 
+import Prelude hiding (lookup)
+
 import Control.Monad.Trans.State.Lazy (State, modify, get, runState)
 
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
+import Data.HashMap.Strict (HashMap, empty, insert, lookup)
 
 import Grammar
 
--- XXX use map instead
 type Output = (Integer, Maybe Text)
 
-type Eval = State [(Text, Integer)]
+type Eval = State (HashMap Text Integer)
 
 eval :: Stmt -> [Output]
-eval stmt = fst $ runState (eval' stmt) []
+eval stmt = fst $ runState (eval' stmt) empty
 
 eval' :: Stmt -> Eval [Output]
 eval' (Sequence stmts) = catMaybes <$> mapM eval'' stmts
@@ -40,7 +42,7 @@ evalArithmeticExpr expr = case expr of
 evalAssignmentExpr :: AssignmentExpr -> Eval ()
 evalAssignmentExpr (Assignment var expr) = do
   val <- evalArithmeticExpr expr
-  modify ((var, val):)
+  modify (insert var val)
 
 evalOutputExpr :: OutputExpr -> Eval Output
 evalOutputExpr (Output expr name) = do
