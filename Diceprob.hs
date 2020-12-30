@@ -23,12 +23,9 @@ readScript = do
     scriptContent <- readFile scriptName
     return $ Just (scriptName, scriptContent)
 
-quit :: String -> IO ()
-quit msg = die $ "error: " ++ msg
-
 main :: IO ()
 main = do
   maybeScript <- readScript
   case maybeScript of
-    Nothing -> quit "no input file specified"
+    Nothing -> error "no input file specified"
     Just (script) -> putStrLn . evalAST . buildAST $ script
