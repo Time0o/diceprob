@@ -5,7 +5,7 @@ module Diceprob where
 import System.Console.CmdArgs
 import System.Exit (die)
 
-import AST (buildAST, evalAST)
+import AST (buildAST, debugAST)
 
 data Diceprob = Diceprob {script :: String}
                 deriving (Show, Data, Typeable)
@@ -28,4 +28,6 @@ main = do
   maybeScript <- readScript
   case maybeScript of
     Nothing -> error "no input file specified"
-    Just (script) -> putStrLn . evalAST . buildAST $ script
+    Just (script) -> case buildAST script of
+      (Left parseError) -> putStrLn . debugAST $ parseError
+      (Right stmt) -> putStrLn . show $ stmt
