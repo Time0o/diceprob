@@ -8,6 +8,7 @@ import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import Data.HashMap.Strict (HashMap, empty, insert, lookup)
 
+import Bool
 import Grammar
 
 type Output = (Integer, Maybe Text)
@@ -24,27 +25,36 @@ eval'' :: Stmt -> Eval (Maybe Output)
 eval'' (AssignmentExpr expr) = Nothing <$ evalAssignmentExpr expr
 eval'' (OutputExpr expr)     = Just <$> evalOutputExpr expr
 
-evalArithmeticExpr :: ArithmeticExpr -> Eval Integer
-evalArithmeticExpr expr = case expr of
-  Constant n -> return n
+evalAssignmentExpr :: AssignmentExpr -> Eval ()
+evalAssignmentExpr (Assignment var expr) = do
+  val <- evalIntegerExpr expr
+  modify (insert var val)
+
+evalOutputExpr :: OutputExpr -> Eval Output
+evalOutputExpr (Output expr name) = do
+  val <- evalIntegerExpr expr
+  return (val, name)
+
+evalIntegerExpr :: IntegerExpr -> Eval Integer
+evalIntegerExpr expr = case expr of
+  Constant n     -> return n
   Variable v -> do
     env <- get
     case lookup v env of
       Just n -> return n
       Nothing -> error $ "variable '" ++ show v ++ "' not defined"
-  Negation e           -> negate <$> evalArithmeticExpr e
-  Sum e1 e2            -> (+) <$> evalArithmeticExpr e1 <*> evalArithmeticExpr e2
-  Subtraction e1 e2    -> (-) <$> evalArithmeticExpr e1 <*> evalArithmeticExpr e2
-  Product e1 e2        -> (*) <$> evalArithmeticExpr e1 <*> evalArithmeticExpr e2
-  Division e1 e2       -> div <$> evalArithmeticExpr e1 <*> evalArithmeticExpr e2
-  Exponentiation e1 e2 -> (^) <$> evalArithmeticExpr e1 <*> evalArithmeticExpr e2
-
-evalAssignmentExpr :: AssignmentExpr -> Eval ()
-evalAssignmentExpr (Assignment var expr) = do
-  val <- evalArithmeticExpr expr
-  modify (insert var val)
-
-evalOutputExpr :: OutputExpr -> Eval Output
-evalOutputExpr (Output expr name) = do
-  val <- evalArithmeticExpr expr
-  return (val, name)
+  IntegerNegation e    -> negate   <$> evalIntegerExpr e
+  Sum e1 e2            -> (+)      <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
+  Subtraction e1 e2    -> (-)      <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
+  Product e1 e2        -> (*)      <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
+  Division e1 e2       -> div      <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
+  Exponentiation e1 e2 -> (^)      <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
+  Equal e1 e2          -> equal    <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
+  NotEqual e1 e2       -> notEqual <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
+  Smaller e1 e2        -> smaller  <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
+  Greater e1 e2        -> greater  <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
+  AtLeast e1 e2        -> atLeast  <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
+  AtMost e1 e2         -> atMost   <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
+  LogicalNegation e    -> not'     <$> evalIntegerExpr e
+  LogicalAnd e1 e2     -> and'     <$> evalIntegerExpr e1 <*> evalIntegerExpr e2
+  LogicalOr e1 e2      -> or'      <$> evalIntegerExpr e1 <*> evalIntegerExpr e2

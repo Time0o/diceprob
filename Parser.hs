@@ -33,9 +33,6 @@ lexeme = Lex.lexeme spaceOrComment
 
 -- Basic
 
-parenthesised :: Parser a -> Parser a
-parenthesised = between (symbol "(") (symbol ")")
-
 integerLiteral :: Parser Integer
 integerLiteral = lexeme Lex.decimal
 
@@ -44,6 +41,19 @@ stringLiteral = lexeme $ fromString <$ char '"' <*> manyTill Lex.charLiteral (ch
 
 variable :: Parser Text
 variable = lexeme $ fromString <$> some (upperChar <|> char '_')
+
+parenthesised :: Parser a -> Parser a
+parenthesised = between (symbol "(") (symbol ")")
+
+unaryOp :: Text
+        -> (a -> a)
+        -> Operator Parser a
+unaryOp name f = Prefix (f <$ symbol name)
+
+binaryOp :: Text
+         -> (a -> a -> a)
+         -> Operator Parser a
+binaryOp name f = InfixL (f <$ symbol name)
 
 -- Statments
 
@@ -55,38 +65,40 @@ stmt = do
     xs -> Sequence xs
 
 stmt' :: Parser Stmt
-stmt' = AssignmentExpr <$> assignmentExpr <|> OutputExpr <$> outputExpr
+stmt' = AssignmentExpr <$> assignmentExpr
+      <|> OutputExpr <$> outputExpr
 
--- Arithmetic Expressions
+-- Integer Expressions
 
-arithmeticExpr :: Parser ArithmeticExpr
-arithmeticExpr = makeExprParser arithmeticTerm operatorTable
+integerExpr :: Parser IntegerExpr
+integerExpr = makeExprParser integerTerm integerOperatorTable
 
-arithmeticTerm :: Parser ArithmeticExpr
-arithmeticTerm = (parenthesised arithmeticExpr) <|> Constant <$> integerLiteral <|> Variable <$> variable
+integerTerm :: Parser IntegerExpr
+integerTerm = (parenthesised integerExpr)
+            <|> Constant <$> integerLiteral
+            <|> Variable <$> variable
 
-unaryOp :: Text
-        -> (ArithmeticExpr -> ArithmeticExpr)
-        -> Operator Parser ArithmeticExpr
-unaryOp name f = Prefix (f <$ symbol name)
-
-binaryOp :: Text
-         -> (ArithmeticExpr -> ArithmeticExpr -> ArithmeticExpr)
-         -> Operator Parser ArithmeticExpr
-binaryOp name f = InfixL (f <$ symbol name)
-
-operatorTable :: [[Operator Parser ArithmeticExpr]]
-operatorTable = [[unaryOp "+" id, unaryOp "-" Negation],
-                 [binaryOp "^" Exponentiation],
-                 [binaryOp "*" Product, binaryOp "/" Division],
-                 [binaryOp "+" Sum, binaryOp "-" Subtraction]]
+integerOperatorTable :: [[Operator Parser IntegerExpr]]
+integerOperatorTable = [[unaryOp "+" id,
+                         unaryOp "-" IntegerNegation,
+                         unaryOp "!" LogicalNegation],
+                        [binaryOp "^" Exponentiation],
+                        [binaryOp "*" Product, binaryOp "/" Division],
+                        [binaryOp "+" Sum, binaryOp "-" Subtraction],
+                        [binaryOp "=" Equal,
+                          binaryOp "!=" NotEqual,
+                          binaryOp "<" Smaller,
+                          binaryOp ">" Greater,
+                          binaryOp ">=" AtLeast,
+                          binaryOp "<=" AtMost],
+                        [binaryOp "&" LogicalAnd, binaryOp "|" LogicalOr]]
 
 -- Assignment
 
 assignmentExpr :: Parser AssignmentExpr
-assignmentExpr = Assignment <$> variable <* symbol ":" <*> arithmeticExpr
+assignmentExpr = Assignment <$> variable <* symbol ":" <*> integerExpr
 
 -- Output
 
 outputExpr :: Parser OutputExpr
-outputExpr = Output <$ symbol "output" <*> arithmeticExpr <*> optional (symbol "named" *> stringLiteral)
+outputExpr = Output <$ symbol "output" <*> integerExpr <*> optional (symbol "named" *> stringLiteral)
