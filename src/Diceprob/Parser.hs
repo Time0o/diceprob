@@ -97,11 +97,11 @@ diceOperatorTable = [[unaryOp "+" id,
                      [binaryOp "*" Product, binaryOp "/" Division],
                      [binaryOp "+" Sum, binaryOp "-" Subtraction],
                      [binaryOp "=" Equal,
-                       binaryOp "!=" NotEqual,
-                       binaryOp "<" Smaller,
-                       binaryOp ">" Greater,
-                       binaryOp ">=" AtLeast,
-                       binaryOp "<=" AtMost],
+                      binaryOp "!=" NotEqual,
+                      binaryOp ">=" AtLeast,
+                      binaryOp "<=" AtMost,
+                      binaryOp "<" Smaller,
+                      binaryOp ">" Greater],
                      [binaryOp "&" And, binaryOp "|" Or]]
 
 -- Assignment
