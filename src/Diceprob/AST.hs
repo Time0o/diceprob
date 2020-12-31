@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 
-module Diceprob.AST where
+module Diceprob.AST (buildAST, debugAST) where
 
 import Data.String (fromString)
 import Data.Text (Text)

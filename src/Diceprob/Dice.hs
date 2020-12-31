@@ -2,7 +2,20 @@
 
 {-# Language FlexibleInstances #-}
 
-module Diceprob.Dice where
+module Diceprob.Dice (
+  Dice,
+  dicePower,
+  diceEqual,
+  diceNotEqual,
+  diceSmaller,
+  diceGreater,
+  diceAtLeast,
+  diceAtMost,
+  diceAnd,
+  diceOr,
+  diceNot,
+  dn
+) where
 
 import Data.List (groupBy, sort)
 

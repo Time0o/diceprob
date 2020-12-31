@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 
-module Diceprob.Eval where
+module Diceprob.Eval (eval) where
 
 import Prelude hiding (lookup)
 

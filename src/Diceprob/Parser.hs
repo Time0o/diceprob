@@ -2,7 +2,7 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Diceprob.Parser where
+module Diceprob.Parser (stmt) where
 
 import Control.Monad.Combinators.Expr
 
