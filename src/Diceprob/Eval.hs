@@ -1,6 +1,14 @@
 {-# OPTIONS_GHC -Wall #-}
 
-module Diceprob.Eval (eval) where
+module Diceprob.Eval (
+  Output,
+  Eval,
+  eval,
+  evalStmt,
+  evalAssignmentExpr,
+  evalOutputExpr,
+  evalDiceExpr
+) where
 
 import Prelude hiding (lookup)
 
@@ -16,13 +24,13 @@ type Output = (Dice, Maybe Text)
 
 type Eval = State (HashMap Text Dice)
 
-eval :: Stmt -> [Output]
-eval stmt = fst $ runState (eval' stmt) empty
+eval :: (a -> Eval b) -> (a -> b)
+eval eval' what = fst $ runState (eval' what) empty
 
-eval' :: Stmt -> Eval [Output]
-eval' (Sequence stmts)      = concat   <$> mapM eval' stmts
-eval' (AssignmentExpr expr) = const [] <$> evalAssignmentExpr expr
-eval' (OutputExpr expr)     = (:[])    <$> evalOutputExpr expr
+evalStmt :: Stmt -> Eval [Output]
+evalStmt (Sequence stmts)      = concat   <$> mapM evalStmt stmts
+evalStmt (AssignmentExpr expr) = const [] <$> evalAssignmentExpr expr
+evalStmt (OutputExpr expr)     = (:[])    <$> evalOutputExpr expr
 
 evalAssignmentExpr :: AssignmentExpr -> Eval ()
 evalAssignmentExpr (Assignment var expr) = do

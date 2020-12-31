@@ -4,6 +4,8 @@
 
 module Diceprob.Dice (
   Dice,
+  diceUniformPMF,
+  dicePMFEqual,
   dicePower,
   diceEqual,
   diceNotEqual,
@@ -17,10 +19,21 @@ module Diceprob.Dice (
   dn
 ) where
 
+import Data.AEq ((~==))
 import Data.List (groupBy, sort)
 
 data Dice = Dice { pmf :: [(Integer, Double)] }
-          deriving (Show)
+          deriving (Eq, Show)
+
+diceUniformPMF :: [Integer] -> [(Integer,Double)]
+diceUniformPMF domain = zip domain (replicate n p)
+  where n = fromIntegral . length $ domain :: Int
+        p = 1.0 / fromIntegral n :: Double
+
+dicePMFEqual :: [(Integer, Double)] -> Dice -> Bool
+dicePMFEqual pmf' d = (v == v') && (all id $ zipWith (~==) p p')
+  where (v,p) = unzip . pmf $ d
+        (v',p') = unzip pmf'
 
 diceCombine :: (Integer -> Integer -> Integer) -> Dice -> Dice -> Dice
 diceCombine f d d' = Dice { pmf = reduce . group $ pmfsCombined }
@@ -61,4 +74,4 @@ diceNot :: Dice -> Dice
 diceNot d = if pmf d == [(0,1.0)] then 1 else 0
 
 dn :: Integer -> Dice
-dn n = Dice { pmf = zip [1..n] (replicate (fromIntegral n) (1.0 / fromIntegral n)) }
+dn n = Dice { pmf = diceUniformPMF [1..n] }

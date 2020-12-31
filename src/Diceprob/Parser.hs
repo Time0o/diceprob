@@ -2,7 +2,13 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Diceprob.Parser (stmt) where
+module Diceprob.Parser (
+  Parser,
+  stmt,
+  assignmentExpr,
+  outputExpr,
+  diceExpr
+) where
 
 import Control.Monad.Combinators.Expr
 
@@ -76,6 +82,16 @@ stmt' :: Parser Stmt
 stmt' = AssignmentExpr <$> assignmentExpr
       <|> OutputExpr <$> outputExpr
 
+-- Assignment Expressions
+
+assignmentExpr :: Parser AssignmentExpr
+assignmentExpr = Assignment <$> variable <* symbol ":" <*> diceExpr
+
+-- Output Expressions
+
+outputExpr :: Parser OutputExpr
+outputExpr = Output <$ symbol "output" <*> diceExpr <*> optional (symbol "named" *> stringLiteral)
+
 -- Dice Expressions
 
 diceExpr :: Parser DiceExpr
@@ -103,13 +119,3 @@ diceOperatorTable = [[unaryOp "+" id,
                       binaryOp "<" Smaller,
                       binaryOp ">" Greater],
                      [binaryOp "&" And, binaryOp "|" Or]]
-
--- Assignment
-
-assignmentExpr :: Parser AssignmentExpr
-assignmentExpr = Assignment <$> variable <* symbol ":" <*> diceExpr
-
--- Output
-
-outputExpr :: Parser OutputExpr
-outputExpr = Output <$ symbol "output" <*> diceExpr <*> optional (symbol "named" *> stringLiteral)
