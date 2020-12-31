@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 
-module AST where
+module Diceprob.AST where
 
 import Data.String (fromString)
 import Data.Text (Text)
@@ -8,8 +8,8 @@ import Data.Void (Void)
 
 import Text.Megaparsec (ParseErrorBundle, errorBundlePretty, runParser)
 
-import Grammar (Stmt)
-import Parser (stmt)
+import Diceprob.Grammar (Stmt)
+import Diceprob.Parser (stmt)
 
 buildAST :: (String, String) -> Either (ParseErrorBundle Text Void) Stmt
 buildAST (scriptName, scriptContent) = runParser stmt scriptName (fromString scriptContent)

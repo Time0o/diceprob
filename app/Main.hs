@@ -2,12 +2,10 @@
 
 {-# LANGUAGE DeriveDataTypeable #-}
 
-module Diceprob where
-
 import System.Console.CmdArgs
 
-import AST (buildAST, debugAST)
-import Eval (eval)
+import Diceprob.AST (buildAST, debugAST)
+import Diceprob.Eval (eval)
 
 data Diceprob = Diceprob {script :: String}
                 deriving (Show, Data, Typeable)

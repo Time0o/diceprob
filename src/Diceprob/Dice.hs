@@ -2,7 +2,7 @@
 
 {-# Language FlexibleInstances #-}
 
-module Dice where
+module Diceprob.Dice where
 
 import Data.List (groupBy, sort)
 

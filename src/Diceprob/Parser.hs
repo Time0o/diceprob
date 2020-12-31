@@ -2,7 +2,7 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Parser where
+module Diceprob.Parser where
 
 import Control.Monad.Combinators.Expr
 
@@ -14,8 +14,8 @@ import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as Lex
 
-import Dice (Dice, dn)
-import Grammar
+import Diceprob.Dice (Dice, dn)
+import Diceprob.Grammar
 
 -- Parser
 

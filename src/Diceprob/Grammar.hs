@@ -1,10 +1,10 @@
 {-# OPTIONS_GHC -Wall #-}
 
-module Grammar where
+module Diceprob.Grammar where
 
 import Data.Text (Text)
 
-import Dice (Dice)
+import Diceprob.Dice (Dice)
 
 data Stmt = Sequence [Stmt]
           | AssignmentExpr AssignmentExpr

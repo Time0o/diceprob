@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 
-module Eval where
+module Diceprob.Eval where
 
 import Prelude hiding (lookup)
 
@@ -9,8 +9,8 @@ import Control.Monad.Trans.State.Lazy (State, modify, get, runState)
 import Data.Text (Text)
 import Data.HashMap.Strict (HashMap, empty, insert, lookup)
 
-import Dice
-import Grammar
+import Diceprob.Dice
+import Diceprob.Grammar
 
 type Output = (Dice, Maybe Text)
 
