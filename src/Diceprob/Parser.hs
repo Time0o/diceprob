@@ -7,7 +7,7 @@ module Diceprob.Parser (
   stmt,
   assignmentExpr,
   outputExpr,
-  diceExpr
+  valueExpr
 ) where
 
 import Control.Monad.Combinators.Expr
@@ -40,12 +40,11 @@ lexeme = Lex.lexeme spaceOrComment
 
 -- Basic
 
-toDice :: Maybe Integer -> Integer -> Dice
-toDice (Just num) = sum . replicate (fromIntegral num) . dn
-toDice Nothing    = dn
-
 diceLiteral :: Parser Dice
-diceLiteral = lexeme $ toDice <$> optional (Lex.decimal) <* symbol "d" <*> Lex.decimal
+diceLiteral = lexeme $ dn <$ symbol "d" <*> Lex.decimal
+
+diceCollectionLiteral :: Parser [Dice]
+diceCollectionLiteral = lexeme $ (\num n -> replicate num (dn n)) <$> Lex.decimal <* symbol "d" <*> Lex.decimal
 
 integerLiteral :: Parser Integer
 integerLiteral = lexeme Lex.decimal
@@ -85,37 +84,36 @@ stmt' = AssignmentExpr <$> assignmentExpr
 -- Assignment Expressions
 
 assignmentExpr :: Parser AssignmentExpr
-assignmentExpr = Assignment <$> variable <* symbol ":" <*> diceExpr
+assignmentExpr = Assignment <$> variable <* symbol ":" <*> valueExpr
 
 -- Output Expressions
 
 outputExpr :: Parser OutputExpr
-outputExpr = Output <$ symbol "output" <*> diceExpr <*> optional (symbol "named" *> stringLiteral)
+outputExpr = Output <$ symbol "output" <*> valueExpr <*> optional (symbol "named" *> stringLiteral)
 
--- Dice Expressions
+-- Value Expressions
 
-diceExpr :: Parser DiceExpr
-diceExpr = makeExprParser diceTerm diceOperatorTable
+valueExpr :: Parser ValueExpr
+valueExpr = makeExprParser valueTerm valueOperatorTable
 
-diceTerm :: Parser DiceExpr
-diceTerm = parenthesised diceExpr
-         <|> literal
-         <|> Variable <$> variable
-  where literal = try dice <|> integer
-        dice    = DiceLiteral <$> diceLiteral
-        integer = IntegerLiteral <$> integerLiteral
+valueTerm :: Parser ValueExpr
+valueTerm = parenthesised valueExpr
+          <|> try (DiceLiteral <$> diceLiteral)
+          <|> try (DiceCollectionLiteral <$> diceCollectionLiteral)
+          <|> IntegerLiteral <$> integerLiteral
+          <|> Variable <$> variable
 
-diceOperatorTable :: [[Operator Parser DiceExpr]]
-diceOperatorTable = [[unaryOp "+" id,
-                      unaryOp "-" Negation,
-                      unaryOp "!" Not],
-                     [binaryOp "^" Exponentiation],
-                     [binaryOp "*" Product, binaryOp "/" Division],
-                     [binaryOp "+" Sum, binaryOp "-" Subtraction],
-                     [binaryOp "=" Equal,
-                      binaryOp "!=" NotEqual,
-                      binaryOp ">=" AtLeast,
-                      binaryOp "<=" AtMost,
-                      binaryOp "<" Smaller,
-                      binaryOp ">" Greater],
-                     [binaryOp "&" And, binaryOp "|" Or]]
+valueOperatorTable :: [[Operator Parser ValueExpr]]
+valueOperatorTable = [[unaryOp "+" id,
+                       unaryOp "-" Negation,
+                       unaryOp "!" Not],
+                      [binaryOp "^" Exponentiation],
+                      [binaryOp "*" Product, binaryOp "/" Division],
+                      [binaryOp "+" Sum, binaryOp "-" Subtraction],
+                      [binaryOp "=" Equal,
+                       binaryOp "!=" NotEqual,
+                       binaryOp ">=" AtLeast,
+                       binaryOp "<=" AtMost,
+                       binaryOp "<" Smaller,
+                       binaryOp ">" Greater],
+                      [binaryOp "&" And, binaryOp "|" Or]]

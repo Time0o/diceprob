@@ -7,7 +7,7 @@ module Diceprob.Eval (
   evalStmt,
   evalAssignmentExpr,
   evalOutputExpr,
-  evalDiceExpr
+  evalValueExpr
 ) where
 
 import Prelude hiding (lookup)
@@ -17,12 +17,14 @@ import Control.Monad.Trans.State.Lazy (State, modify, get, runState)
 import Data.Text (Text)
 import Data.HashMap.Strict (HashMap, empty, insert, lookup)
 
-import Diceprob.Dice
+import Diceprob.Dice (Dice)
 import Diceprob.Grammar
+import Diceprob.Op
+import Diceprob.Value
 
 type Output = (Dice, Maybe Text)
 
-type Eval = State (HashMap Text Dice)
+type Eval = State (HashMap Text Value)
 
 eval :: (a -> Eval b) -> (a -> b)
 eval eval' what = fst $ runState (eval' what) empty
@@ -34,35 +36,36 @@ evalStmt (OutputExpr expr)     = (:[])    <$> evalOutputExpr expr
 
 evalAssignmentExpr :: AssignmentExpr -> Eval ()
 evalAssignmentExpr (Assignment var expr) = do
-  val <- evalDiceExpr expr
+  val <- evalValueExpr expr
   modify (insert var val)
 
 evalOutputExpr :: OutputExpr -> Eval Output
 evalOutputExpr (Output expr name) = do
-  val <- evalDiceExpr expr
-  return (val, name)
+  val <- evalValueExpr $ expr
+  return (valueToDice val, name)
 
-evalDiceExpr :: DiceExpr -> Eval Dice
-evalDiceExpr expr = case expr of
-  DiceLiteral d     -> return d
-  IntegerLiteral n  -> return $ fromInteger n
-  Variable v        -> do
+evalValueExpr :: ValueExpr -> Eval Value
+evalValueExpr expr = case expr of
+  DiceLiteral x           -> return $ Dice x
+  DiceCollectionLiteral x -> return $ DiceCollection x
+  IntegerLiteral x        -> return $ Integer x
+  Variable v              -> do
     env <- get
     case lookup v env of
-      Just d -> return d
+      Just x -> return x
       Nothing -> error $ "variable '" ++ show v ++ "' not defined"
-  Negation e           -> negate       <$> evalDiceExpr e
-  Sum e1 e2            -> (+)          <$> evalDiceExpr e1 <*> evalDiceExpr e2
-  Subtraction e1 e2    -> (-)          <$> evalDiceExpr e1 <*> evalDiceExpr e2
-  Product e1 e2        -> (*)          <$> evalDiceExpr e1 <*> evalDiceExpr e2
-  Division e1 e2       -> (/)          <$> evalDiceExpr e1 <*> evalDiceExpr e2
-  Exponentiation e1 e2 -> dicePower    <$> evalDiceExpr e1 <*> evalDiceExpr e2
-  Equal e1 e2          -> diceEqual    <$> evalDiceExpr e1 <*> evalDiceExpr e2
-  NotEqual e1 e2       -> diceNotEqual <$> evalDiceExpr e1 <*> evalDiceExpr e2
-  Smaller e1 e2        -> diceSmaller  <$> evalDiceExpr e1 <*> evalDiceExpr e2
-  Greater e1 e2        -> diceGreater  <$> evalDiceExpr e1 <*> evalDiceExpr e2
-  AtLeast e1 e2        -> diceAtLeast  <$> evalDiceExpr e1 <*> evalDiceExpr e2
-  AtMost e1 e2         -> diceAtMost   <$> evalDiceExpr e1 <*> evalDiceExpr e2
-  Not e                -> diceNot      <$> evalDiceExpr e
-  And e1 e2            -> diceAnd      <$> evalDiceExpr e1 <*> evalDiceExpr e2
-  Or e1 e2             -> diceOr       <$> evalDiceExpr e1 <*> evalDiceExpr e2
+  Negation e          -> valueUnaryOp  (#-)  <$> evalValueExpr e
+  Sum e e'            -> valueBinaryOp (#+)  <$> evalValueExpr e <*> evalValueExpr e'
+  Subtraction e e'    -> valueBinaryOp (#--) <$> evalValueExpr e <*> evalValueExpr e'
+  Product e e'        -> valueBinaryOp (#*)  <$> evalValueExpr e <*> evalValueExpr e'
+  Division e e'       -> valueBinaryOp (#/)  <$> evalValueExpr e <*> evalValueExpr e'
+  Exponentiation e e' -> valueBinaryOp (#^)  <$> evalValueExpr e <*> evalValueExpr e'
+  Equal e e'          -> valueBinaryOp (#=)  <$> evalValueExpr e <*> evalValueExpr e'
+  NotEqual e e'       -> valueBinaryOp (#!=) <$> evalValueExpr e <*> evalValueExpr e'
+  Smaller e e'        -> valueBinaryOp (#<)  <$> evalValueExpr e <*> evalValueExpr e'
+  Greater e e'        -> valueBinaryOp (#>)  <$> evalValueExpr e <*> evalValueExpr e'
+  AtMost e e'         -> valueBinaryOp (#<=) <$> evalValueExpr e <*> evalValueExpr e'
+  AtLeast e e'        -> valueBinaryOp (#>=) <$> evalValueExpr e <*> evalValueExpr e'
+  Not e               -> valueUnaryOp  (#!)  <$> evalValueExpr e
+  And e1 e2           -> valueBinaryOp (#&)  <$> evalValueExpr e1 <*> evalValueExpr e2
+  Or e1 e2            -> valueBinaryOp (#|)  <$> evalValueExpr e1 <*> evalValueExpr e2

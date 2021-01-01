@@ -11,28 +11,29 @@ data Stmt = Sequence [Stmt]
           | OutputExpr OutputExpr
           deriving (Show)
 
-data AssignmentExpr = Assignment Text DiceExpr
+data AssignmentExpr = Assignment Text ValueExpr
                     deriving (Show)
 
-data OutputExpr = Output DiceExpr (Maybe Text)
+data OutputExpr = Output ValueExpr (Maybe Text)
                 deriving (Show)
 
-data DiceExpr = DiceLiteral Dice
-              | IntegerLiteral Integer
-              | Variable Text
-              | Negation DiceExpr
-              | Sum DiceExpr DiceExpr
-              | Subtraction DiceExpr DiceExpr
-              | Product DiceExpr DiceExpr
-              | Division DiceExpr DiceExpr
-              | Exponentiation DiceExpr DiceExpr
-              | Equal DiceExpr DiceExpr
-              | NotEqual DiceExpr DiceExpr
-              | Smaller DiceExpr DiceExpr
-              | Greater DiceExpr DiceExpr
-              | AtLeast DiceExpr DiceExpr
-              | AtMost DiceExpr DiceExpr
-              | Not DiceExpr
-              | And DiceExpr DiceExpr
-              | Or DiceExpr DiceExpr
-              deriving (Show)
+data ValueExpr = IntegerLiteral Integer
+               | DiceLiteral Dice
+               | DiceCollectionLiteral [Dice]
+               | Variable Text
+               | Negation ValueExpr
+               | Sum ValueExpr ValueExpr
+               | Subtraction ValueExpr ValueExpr
+               | Product ValueExpr ValueExpr
+               | Division ValueExpr ValueExpr
+               | Exponentiation ValueExpr ValueExpr
+               | Equal ValueExpr ValueExpr
+               | NotEqual ValueExpr ValueExpr
+               | Smaller ValueExpr ValueExpr
+               | Greater ValueExpr ValueExpr
+               | AtLeast ValueExpr ValueExpr
+               | AtMost ValueExpr ValueExpr
+               | Not ValueExpr
+               | And ValueExpr ValueExpr
+               | Or ValueExpr ValueExpr
+               deriving (Show)
