@@ -122,3 +122,9 @@ main = hspec $ do
           (dn 2 #+ dn 2 #+ dSeq [10], Just "12, 13, 13, 14"),
           (dn 2 #+ dn 2 #> dn 3, Just "1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1")
         ]
+    it "evaluates sequences" $ do
+      testStmt [
+          "output {1, 2, 3} named \"1, 2, 3\""
+        ] ? [
+          (dSeq [1, 2, 3], Just "1, 2, 3")
+        ]

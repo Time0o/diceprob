@@ -49,6 +49,9 @@ diceCollectionLiteral = lexeme $ (\num n -> replicate num (dn n)) <$> Lex.decima
 integerLiteral :: Parser Integer
 integerLiteral = lexeme Lex.decimal
 
+integerSequenceLiteral :: Parser [Integer]
+integerSequenceLiteral = lexeme $ char '{' *> integerLiteral `sepBy` (space *> char ',' *> space) <* char '}'
+
 stringLiteral :: Parser Text
 stringLiteral = lexeme $ fromString <$ char '"' <*> manyTill Lex.charLiteral (char '"')
 
@@ -101,6 +104,7 @@ valueTerm = parenthesised valueExpr
           <|> try (DiceLiteral <$> diceLiteral)
           <|> try (DiceCollectionLiteral <$> diceCollectionLiteral)
           <|> IntegerLiteral <$> integerLiteral
+          <|> IntegerSequenceLiteral <$> integerSequenceLiteral
           <|> Variable <$> variable
 
 valueOperatorTable :: [[Operator Parser ValueExpr]]

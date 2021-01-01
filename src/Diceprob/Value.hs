@@ -13,15 +13,17 @@ import Diceprob.Integer
 import Diceprob.Op
 
 data Value = Integer Integer
+           | IntegerSequence [Integer]
            | Dice Dice
            | DiceCollection [Dice]
            deriving (Eq, Show)
 
 valueUnaryOp :: (forall a. Op a => a -> a) -> (Value -> Value)
 valueUnaryOp op v = case v of
-  (Integer x)        -> Integer $ op x
-  (Dice x)           -> Dice    $ op x
-  (DiceCollection _) -> Dice    $ op (valueToDice v)
+  (Integer x)         -> Integer $ op x
+  (IntegerSequence _) -> Integer $ op (valueToInteger v)
+  (Dice x)            -> Dice    $ op x
+  (DiceCollection _)  -> Dice    $ op (valueToDice v)
 
 valueBinaryOp :: (forall a. Op a => a -> a -> a) -> (Value -> Value -> Value)
 valueBinaryOp op v v' = case (v, v') of
@@ -32,10 +34,14 @@ valueBinaryOp op v v' = case (v, v') of
   (x, y)                -> Integer $ op (valueToInteger x) (valueToInteger y)
 
 valueToDice :: Value -> Dice
-valueToDice (Integer x)        = dSeq [x]
-valueToDice (Dice x)           = x
-valueToDice (DiceCollection x) = foldl1' (#+) x
+valueToDice v = case v of
+  Integer x         -> dSeq [x]
+  IntegerSequence x -> dSeq x
+  Dice x            -> x
+  DiceCollection x  -> foldl1' (#+) x
 
 valueToInteger :: Value -> Integer
-valueToInteger (Integer x) = x
-valueToInteger _           = undefined
+valueToInteger v = case v of
+  Integer x         -> x
+  IntegerSequence x -> sum x
+  _                 -> undefined

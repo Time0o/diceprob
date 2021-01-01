@@ -18,6 +18,7 @@ data OutputExpr = Output ValueExpr (Maybe Text)
                 deriving (Show)
 
 data ValueExpr = IntegerLiteral Integer
+               | IntegerSequenceLiteral [Integer]
                | DiceLiteral Dice
                | DiceCollectionLiteral [Dice]
                | Variable Text
