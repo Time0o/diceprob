@@ -44,36 +44,46 @@ evalOutputExpr (Output expr name) = do
   val <- evalValueExpr $ expr
   return (valueToDice val, name)
 
+evalSequenceValue :: ValueExpr -> Eval [Integer]
+evalSequenceValue v = do
+  v' <- evalValueExpr v
+  return $ valueToSequence v'
+
+evalSequenceRange :: Range -> Eval [Integer]
+evalSequenceRange (Range from to) = do
+  from' <- evalValueExpr from
+  to'   <- evalValueExpr to
+  case (from', to') of
+    (Integer from'', Integer to'') -> return [from''..to'']
+    _                              -> error "sequence range must begin and end with integer"
+
+evalSequenceRepeat :: Repeat -> Eval [Integer]
+evalSequenceRepeat r = do
+    what <- case r of
+              RepeatValue v _  -> evalSequenceValue v
+              RepeatRange r' _ -> evalSequenceRange r'
+    times <- case r of
+              RepeatValue _ t -> evalValueExpr t
+              RepeatRange _ t -> evalValueExpr t
+    case times of
+      Integer times' -> return $ concat . replicate (fromIntegral times') $ what
+      _              -> error "sequence multiplier must be an integer"
+
+evalSequence :: [SequenceElement] -> Eval [Integer]
+evalSequence s = concat <$> mapM expandElement s
+  where expandElement :: SequenceElement -> Eval [Integer]
+        expandElement e = case e of
+          SequenceValue v  -> evalSequenceValue v
+          SequenceRange r  -> evalSequenceRange r
+          SequenceRepeat r -> evalSequenceRepeat r
+
 evalValueExpr :: ValueExpr -> Eval Value
 evalValueExpr expr = case expr of
   Literal l -> case l of
     DiceLiteral x           -> return $ Dice x
     DiceCollectionLiteral x -> return $ DiceCollection x
     IntegerLiteral x        -> return $ Integer x
-    SequenceLiteral x       -> do
-      expanded <- expandSequence x
-      return $ Sequence expanded
-        where expandElement :: SequenceElement -> Eval [Integer]
-              expandElement e = case e of
-                Element e' -> do
-                  value <- evalValueExpr e'
-                  return $ valueToSequence value
-                Range from to -> do
-                  from' <- evalValueExpr from
-                  to'   <- evalValueExpr to
-                  case (from', to') of
-                    (Integer from'', Integer to'') -> return [from''..to'']
-                    _                              -> error "sequence range must begin and end with integer"
-                Repeat what times -> do
-                  what'  <- evalValueExpr what
-                  times' <- evalValueExpr times
-                  case times' of
-                    Integer times'' -> return $ concat . replicate times''' $ what''
-                      where what''   = valueToSequence what'
-                            times''' = fromIntegral times''
-                    _               -> error "sequence multiplier must be an integer"
-              expandSequence :: [SequenceElement] -> Eval [Integer]
-              expandSequence s = concat <$> mapM expandElement s
+    SequenceLiteral x       -> Sequence <$> evalSequence x
   Variable v -> do
     env <- get
     case lookup v env of

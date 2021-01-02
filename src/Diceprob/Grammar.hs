@@ -36,9 +36,16 @@ data ValueExpr = Literal Literal
                | Or ValueExpr ValueExpr
                deriving (Show)
 
-data SequenceElement = Element ValueExpr
-                     | Range ValueExpr ValueExpr
-                     | Repeat ValueExpr ValueExpr
+data Range = Range ValueExpr ValueExpr
+           deriving (Show)
+
+data Repeat = RepeatValue ValueExpr ValueExpr
+            | RepeatRange Range ValueExpr
+            deriving (Show)
+
+data SequenceElement = SequenceValue ValueExpr
+                     | SequenceRange Range
+                     | SequenceRepeat Repeat
                      deriving (Show)
 
 data Literal = IntegerLiteral Integer

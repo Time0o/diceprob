@@ -50,13 +50,20 @@ diceCollectionLiteral = lexeme $  collect <$> Lex.decimal <* symbol "d" <*> Lex.
 integerLiteral :: Parser Integer
 integerLiteral = lexeme Lex.decimal
 
-sequenceElement :: Parser SequenceElement
-sequenceElement = try (Range <$> valueExpr <* symbol ".." <*> valueExpr)
-                <|> try (Repeat <$> valueExpr <* symbol ":" <*> valueExpr)
-                <|> Element <$> valueExpr
+rangeLiteral :: Parser Range
+rangeLiteral = Range <$> valueExpr <* symbol ".." <*> valueExpr
+
+repeatLiteral :: Parser Repeat
+repeatLiteral = try (RepeatRange <$> rangeLiteral <* symbol ":" <*> valueExpr)
+              <|> RepeatValue <$> valueExpr <* symbol ":" <*> valueExpr
+
+sequenceElementLiteral :: Parser SequenceElement
+sequenceElementLiteral = try (SequenceRepeat <$> repeatLiteral)
+                       <|> try (SequenceRange <$> rangeLiteral)
+                       <|> SequenceValue <$> valueExpr
 
 sequenceLiteral :: Parser [SequenceElement]
-sequenceLiteral = lexeme $ char '{' *> sequenceElement `sepBy` comma <* char '}'
+sequenceLiteral = lexeme $ char '{' *> sequenceElementLiteral `sepBy` comma <* char '}'
   where comma = space *> char ',' *> space
 
 stringLiteral :: Parser Text
