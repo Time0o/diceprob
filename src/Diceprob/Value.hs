@@ -33,6 +33,15 @@ valueBinaryOp op v v' = case (v, v') of
   (_, DiceCollection _) -> Dice    $ op (valueToDice v) (valueToDice v')
   (x, y)                -> Integer $ op (valueToInteger x) (valueToInteger y)
 
+valueSequenceBinaryOp :: (forall a. Op a => a -> a -> a) -> (Value -> Value -> Value)
+valueSequenceBinaryOp op s s' = case (s, s') of
+  (Sequence x, Sequence y) -> Integer $ head $ op x y
+  (Integer x, Sequence y)  -> Integer $ sum . map (op x) $ y
+  (Sequence x, Integer y)  -> Integer $ sum . map (flip op y) $ x
+  (x, Sequence y)          -> Dice    $ op (valueToDice x) (dSeq [sum y])
+  (Sequence x, y)          -> Dice    $ op (dSeq [sum x]) (valueToDice y)
+  _                        -> valueBinaryOp op s s'
+
 valueToInteger :: Value -> Integer
 valueToInteger v = case v of
   Integer x  -> x

@@ -1,4 +1,6 @@
-{-# OPTIONS_GHC -Wall #-}
+{-# OPTIONS_GHC -Wall -Wno-orphans -Wno-missing-methods #-}
+
+{-# LANGUAGE FlexibleInstances #-}
 
 module Diceprob.Integer where
 
@@ -22,3 +24,10 @@ instance Op Integer where
   (#&)  n n' = fromBool (n /= 0 && n' /= 0)
   (#|)  n n' = fromBool (n /= 0 || n' /= 0)
 
+instance Op [Integer] where
+  (#=)  s s' = [fromBool (s == s')]
+  (#!=) s s' = [fromBool (s /= s')]
+  (#<)  s s' = [fromBool (s < s')]
+  (#>)  s s' = [fromBool (s > s')]
+  (#<=) s s' = [fromBool (s <= s')]
+  (#>=) s s' = [fromBool (s >= s')]

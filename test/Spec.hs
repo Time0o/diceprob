@@ -140,3 +140,16 @@ main = hspec $ do
           (dSeq [1, 2, 3, 4], Just "1, 2, 3, 4"),
           (dSeq [], Just "the empty sequence")
         ]
+    it "compares sequences" $ do
+      testValueExpr ["{1,2,3,4} < 3"]      ? Integer 2
+      testValueExpr ["3 > {1,2,3,4}"]      ? Integer 2
+      testValueExpr ["{1,2,3,4} < d20"]    ? Dice (dSeq [10] #< dn 20)
+      testValueExpr ["d20 > {1,2,3,4}"]    ? Dice (dn 20 #> dSeq [10])
+      testValueExpr ["{1,2,3} = {1,2,3}"]  ? Integer 1
+      testValueExpr ["{1,2,3} != {1,2,3}"] ? Integer 0
+      testValueExpr ["{1,2,3} = {1,2,4}"]  ? Integer 0
+      testValueExpr ["{1,2,3} != {1,2,4}"] ? Integer 1
+      testValueExpr ["{1,2,3} < {1,2,4}"]  ? Integer 1
+      testValueExpr ["{1,2,3} > {1,2,4}"]  ? Integer 0
+      testValueExpr ["{1,2,4} < {1,2,3}"]  ? Integer 0
+      testValueExpr ["{1,2,4} > {1,2,3}"]  ? Integer 1
