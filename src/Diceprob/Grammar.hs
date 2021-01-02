@@ -17,10 +17,7 @@ data AssignmentExpr = Assignment Text ValueExpr
 data OutputExpr = Output ValueExpr (Maybe Text)
                 deriving (Show)
 
-data ValueExpr = IntegerLiteral Integer
-               | IntegerSequenceLiteral [Integer]
-               | DiceLiteral Dice
-               | DiceCollectionLiteral [Dice]
+data ValueExpr = Literal Literal
                | Variable Text
                | Negation ValueExpr
                | Sum ValueExpr ValueExpr
@@ -38,3 +35,9 @@ data ValueExpr = IntegerLiteral Integer
                | And ValueExpr ValueExpr
                | Or ValueExpr ValueExpr
                deriving (Show)
+
+data Literal = IntegerLiteral Integer
+             | IntegerSequenceLiteral [Integer]
+             | DiceLiteral Dice
+             | DiceCollectionLiteral [Dice]
+             deriving (Show)

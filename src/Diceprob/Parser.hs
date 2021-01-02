@@ -101,11 +101,13 @@ valueExpr = makeExprParser valueTerm valueOperatorTable
 
 valueTerm :: Parser ValueExpr
 valueTerm = parenthesised valueExpr
-          <|> try (DiceLiteral <$> diceLiteral)
-          <|> try (DiceCollectionLiteral <$> diceCollectionLiteral)
-          <|> IntegerLiteral <$> integerLiteral
-          <|> IntegerSequenceLiteral <$> integerSequenceLiteral
+          <|> Literal <$> literal
           <|> Variable <$> variable
+  where literal :: Parser Literal
+        literal = try (DiceLiteral <$> diceLiteral)
+                <|> try (DiceCollectionLiteral <$> diceCollectionLiteral)
+                <|> IntegerLiteral <$> integerLiteral
+                <|> IntegerSequenceLiteral <$> integerSequenceLiteral
 
 valueOperatorTable :: [[Operator Parser ValueExpr]]
 valueOperatorTable = [[unaryOp "+" id,

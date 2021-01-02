@@ -46,10 +46,11 @@ evalOutputExpr (Output expr name) = do
 
 evalValueExpr :: ValueExpr -> Eval Value
 evalValueExpr expr = case expr of
-  DiceLiteral x            -> return $ Dice x
-  DiceCollectionLiteral x  -> return $ DiceCollection x
-  IntegerLiteral x         -> return $ Integer x
-  IntegerSequenceLiteral x -> return $ IntegerSequence x
+  Literal l -> case l of
+    DiceLiteral x            -> return $ Dice x
+    DiceCollectionLiteral x  -> return $ DiceCollection x
+    IntegerLiteral x         -> return $ Integer x
+    IntegerSequenceLiteral x -> return $ IntegerSequence x
   Variable v               -> do
     env <- get
     case lookup v env of
