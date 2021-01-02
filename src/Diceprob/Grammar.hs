@@ -48,8 +48,10 @@ data SequenceElement = SequenceValue ValueExpr
                      | SequenceRepeat Repeat
                      deriving (Show)
 
+type Sequence = [SequenceElement]
+
 data Literal = IntegerLiteral Integer
-             | SequenceLiteral [SequenceElement]
+             | SequenceLiteral Sequence
              | DiceLiteral Dice
              | DiceCollectionLiteral [Dice]
              deriving (Show)

@@ -69,7 +69,7 @@ evalSequenceRepeat r = do
       Integer times' -> return $ concat . replicate (fromIntegral times') $ what
       _              -> error "sequence multiplier must be an integer"
 
-evalSequence :: [SequenceElement] -> Eval [Integer]
+evalSequence :: Sequence -> Eval [Integer]
 evalSequence s = concat <$> mapM expandElement s
   where expandElement :: SequenceElement -> Eval [Integer]
         expandElement e = case e of

@@ -62,7 +62,7 @@ sequenceElementLiteral = try (SequenceRepeat <$> repeatLiteral)
                        <|> try (SequenceRange <$> rangeLiteral)
                        <|> SequenceValue <$> valueExpr
 
-sequenceLiteral :: Parser [SequenceElement]
+sequenceLiteral :: Parser Sequence
 sequenceLiteral = lexeme $ char '{' *> sequenceElementLiteral `sepBy` comma <* char '}'
   where comma = space *> char ',' *> space
 
