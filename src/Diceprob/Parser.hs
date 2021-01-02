@@ -44,16 +44,29 @@ diceLiteral :: Parser Dice
 diceLiteral = lexeme $ dn <$ symbol "d" <*> Lex.decimal
 
 diceCollectionLiteral :: Parser [Dice]
-diceCollectionLiteral = lexeme $ (\num n -> replicate num (dn n)) <$> Lex.decimal <* symbol "d" <*> Lex.decimal
+diceCollectionLiteral = lexeme $  collect <$> Lex.decimal <* symbol "d" <*> Lex.decimal
+  where collect num n = replicate num (dn n)
 
 integerLiteral :: Parser Integer
 integerLiteral = lexeme Lex.decimal
 
-integerSequenceLiteral :: Parser [Integer]
-integerSequenceLiteral = lexeme $ char '{' *> integerLiteral `sepBy` (space *> char ',' *> space) <* char '}'
+sequenceElement :: Parser SequenceElement
+sequenceElement = try (Range <$> valueExpr <* symbol ".." <*> valueExpr)
+                <|> try (Repeat <$> valueExpr <* symbol ":" <*> valueExpr)
+                <|> Element <$> valueExpr
+
+sequenceLiteral :: Parser [SequenceElement]
+sequenceLiteral = lexeme $ char '{' *> sequenceElement `sepBy` comma <* char '}'
+  where comma = space *> char ',' *> space
 
 stringLiteral :: Parser Text
 stringLiteral = lexeme $ fromString <$ char '"' <*> manyTill Lex.charLiteral (char '"')
+
+literal :: Parser Literal
+literal = try (DiceLiteral <$> diceLiteral)
+        <|> try (DiceCollectionLiteral <$> diceCollectionLiteral)
+        <|> IntegerLiteral <$> integerLiteral
+        <|> SequenceLiteral <$> sequenceLiteral
 
 variable :: Parser Text
 variable = lexeme $ fromString <$> some (upperChar <|> char '_')
@@ -78,7 +91,7 @@ stmt = do
   stmtSeq <- some stmt'
   return $ case stmtSeq of
     (x:[]) -> x
-    xs -> Sequence xs
+    xs -> Stmts xs
 
 stmt' :: Parser Stmt
 stmt' = AssignmentExpr <$> assignmentExpr
@@ -103,11 +116,6 @@ valueTerm :: Parser ValueExpr
 valueTerm = parenthesised valueExpr
           <|> Literal <$> literal
           <|> Variable <$> variable
-  where literal :: Parser Literal
-        literal = try (DiceLiteral <$> diceLiteral)
-                <|> try (DiceCollectionLiteral <$> diceCollectionLiteral)
-                <|> IntegerLiteral <$> integerLiteral
-                <|> IntegerSequenceLiteral <$> integerSequenceLiteral
 
 valueOperatorTable :: [[Operator Parser ValueExpr]]
 valueOperatorTable = [[unaryOp "+" id,

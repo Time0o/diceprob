@@ -6,7 +6,7 @@ import Data.Text (Text)
 
 import Diceprob.Dice (Dice)
 
-data Stmt = Sequence [Stmt]
+data Stmt = Stmts [Stmt]
           | AssignmentExpr AssignmentExpr
           | OutputExpr OutputExpr
           deriving (Show)
@@ -36,8 +36,13 @@ data ValueExpr = Literal Literal
                | Or ValueExpr ValueExpr
                deriving (Show)
 
+data SequenceElement = Element ValueExpr
+                     | Range ValueExpr ValueExpr
+                     | Repeat ValueExpr ValueExpr
+                     deriving (Show)
+
 data Literal = IntegerLiteral Integer
-             | IntegerSequenceLiteral [Integer]
+             | SequenceLiteral [SequenceElement]
              | DiceLiteral Dice
              | DiceCollectionLiteral [Dice]
              deriving (Show)

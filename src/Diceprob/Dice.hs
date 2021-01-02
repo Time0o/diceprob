@@ -6,6 +6,7 @@ module Diceprob.Dice (
   Dice,
   dn,
   dSeq,
+  dValues,
   uniformPMF,
   pmfEqual
 ) where
@@ -43,6 +44,9 @@ dn n = Dice { pmf = uniformPMF [1..n] }
 
 dSeq :: [Integer] -> Dice
 dSeq seq' = Dice { pmf = uniformPMF seq' }
+
+dValues :: Dice -> [Integer]
+dValues = map fst . pmf
 
 diceMap :: (Integer -> Integer) -> Dice -> Dice
 diceMap f d = Dice { pmf = reducePMF . groupPMF $ pmfMapped }

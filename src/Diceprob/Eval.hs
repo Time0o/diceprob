@@ -30,7 +30,7 @@ eval :: (a -> Eval b) -> (a -> b)
 eval eval' what = fst $ runState (eval' what) empty
 
 evalStmt :: Stmt -> Eval [Output]
-evalStmt (Sequence stmts)      = concat   <$> mapM evalStmt stmts
+evalStmt (Stmts stmts)         = concat   <$> mapM evalStmt stmts
 evalStmt (AssignmentExpr expr) = const [] <$> evalAssignmentExpr expr
 evalStmt (OutputExpr expr)     = (:[])    <$> evalOutputExpr expr
 
@@ -47,11 +47,34 @@ evalOutputExpr (Output expr name) = do
 evalValueExpr :: ValueExpr -> Eval Value
 evalValueExpr expr = case expr of
   Literal l -> case l of
-    DiceLiteral x            -> return $ Dice x
-    DiceCollectionLiteral x  -> return $ DiceCollection x
-    IntegerLiteral x         -> return $ Integer x
-    IntegerSequenceLiteral x -> return $ IntegerSequence x
-  Variable v               -> do
+    DiceLiteral x           -> return $ Dice x
+    DiceCollectionLiteral x -> return $ DiceCollection x
+    IntegerLiteral x        -> return $ Integer x
+    SequenceLiteral x       -> do
+      expanded <- expandSequence x
+      return $ Sequence expanded
+        where expandElement :: SequenceElement -> Eval [Integer]
+              expandElement e = case e of
+                Element e' -> do
+                  value <- evalValueExpr e'
+                  return $ valueToSequence value
+                Range from to -> do
+                  from' <- evalValueExpr from
+                  to'   <- evalValueExpr to
+                  case (from', to') of
+                    (Integer from'', Integer to'') -> return [from''..to'']
+                    _                              -> error "sequence range must begin and end with integer"
+                Repeat what times -> do
+                  what'  <- evalValueExpr what
+                  times' <- evalValueExpr times
+                  case times' of
+                    Integer times'' -> return $ concat . replicate times''' $ what''
+                      where what''   = valueToSequence what'
+                            times''' = fromIntegral times''
+                    _               -> error "sequence multiplier must be an integer"
+              expandSequence :: [SequenceElement] -> Eval [Integer]
+              expandSequence s = concat <$> mapM expandElement s
+  Variable v -> do
     env <- get
     case lookup v env of
       Just x -> return x
