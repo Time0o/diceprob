@@ -124,7 +124,19 @@ main = hspec $ do
         ]
     it "evaluates sequences" $ do
       testStmt [
-          "output {1, 2, 3} named \"1, 2, 3\""
+          "output {1, 2, 3} named \"1, 2, 3\"",
+          "output {1..3} named \"1, 2, 3\"",
+          "output {1:4, 2, 3} named \"1, 1, 1, 1, 2, 3\"",
+          "output {1..3:2} named \"1, 2, 3, 1, 2, 3\"",
+          "output {{1,2,4}:2, 5, 6} named \"1, 2, 4, 1, 2, 4, 5, 6\"",
+          "output {d4} named \"1, 2, 3, 4\"",
+          "output {} named \"the empty sequence\""
         ] ? [
-          (dSeq [1, 2, 3], Just "1, 2, 3")
+          (dSeq [1, 2, 3], Just "1, 2, 3"),
+          (dSeq [1, 2, 3], Just "1, 2, 3"),
+          (dSeq [1, 1, 1, 1, 2, 3], Just "1, 1, 1, 1, 2, 3"),
+          (dSeq [1, 2, 3, 1, 2, 3], Just "1, 2, 3, 1, 2, 3"),
+          (dSeq [1, 2, 4, 1, 2, 4, 5, 6], Just "1, 2, 4, 1, 2, 4, 5, 6"),
+          (dSeq [1, 2, 3, 4], Just "1, 2, 3, 4"),
+          (dSeq [], Just "the empty sequence")
         ]
