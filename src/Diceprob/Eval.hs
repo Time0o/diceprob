@@ -17,7 +17,7 @@ import Control.Monad.Trans.State.Lazy (State, modify, get, runState)
 import Data.Text (Text)
 import Data.HashMap.Strict (HashMap, empty, insert, lookup)
 
-import Diceprob.Dice (Dice)
+import Diceprob.Dice (Dice, dn, mdn)
 import Diceprob.Grammar
 import Diceprob.Op
 import Diceprob.Value
@@ -80,10 +80,17 @@ evalSequence s = concat <$> mapM expandElement s
 evalValueExpr :: ValueExpr -> Eval Value
 evalValueExpr expr = case expr of
   Literal l -> case l of
-    DiceLiteral x           -> return $ Dice x
-    DiceCollectionLiteral x -> return $ DiceCollection x
-    IntegerLiteral x        -> return $ Integer x
-    SequenceLiteral x       -> Sequence <$> evalSequence x
+    IntegerLiteral x  -> return $ Integer x
+    SequenceLiteral x -> Sequence <$> evalSequence x
+  DiceLiteral e -> do
+    v <- evalValueExpr e
+    let n = valueToInteger v -- XXX custom dice
+    return $ Dice (dn n)
+  DiceCollectionLiteral e e' -> do
+    v <- evalValueExpr e
+    v' <- evalValueExpr e'
+    let (m, n) = (valueToInteger v, valueToInteger v') -- XXX custom dice
+    return $ DiceCollection (mdn m n)
   Variable v -> do
     env <- get
     case lookup v env of

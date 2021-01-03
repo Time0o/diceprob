@@ -20,7 +20,6 @@ import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as Lex
 
-import Diceprob.Dice (Dice, dn)
 import Diceprob.Grammar
 
 -- Parser
@@ -39,13 +38,6 @@ lexeme :: Parser a -> Parser a
 lexeme = Lex.lexeme spaceOrComment
 
 -- Basic
-
-diceLiteral :: Parser Dice
-diceLiteral = lexeme $ dn <$ symbol "d" <*> Lex.decimal
-
-diceCollectionLiteral :: Parser [Dice]
-diceCollectionLiteral = lexeme $  collect <$> Lex.decimal <* symbol "d" <*> Lex.decimal
-  where collect num n = replicate num (dn n)
 
 integerLiteral :: Parser Integer
 integerLiteral = lexeme Lex.decimal
@@ -70,9 +62,7 @@ stringLiteral :: Parser Text
 stringLiteral = lexeme $ fromString <$ char '"' <*> manyTill Lex.charLiteral (char '"')
 
 literal :: Parser Literal
-literal = try (DiceLiteral <$> diceLiteral)
-        <|> try (DiceCollectionLiteral <$> diceCollectionLiteral)
-        <|> IntegerLiteral <$> integerLiteral
+literal = IntegerLiteral <$> integerLiteral
         <|> SequenceLiteral <$> sequenceLiteral
 
 variable :: Parser Text
@@ -125,9 +115,11 @@ valueTerm = parenthesised valueExpr
           <|> Variable <$> variable
 
 valueOperatorTable :: [[Operator Parser ValueExpr]]
-valueOperatorTable = [[unaryOp "+" id,
+valueOperatorTable = [[unaryOp "d" DiceLiteral,
+                       unaryOp "+" id,
                        unaryOp "-" Negation,
                        unaryOp "!" Not],
+                      [binaryOp "d" DiceCollectionLiteral],
                       [binaryOp "^" Exponentiation],
                       [binaryOp "*" Product, binaryOp "/" Division],
                       [binaryOp "+" Sum, binaryOp "-" Subtraction],

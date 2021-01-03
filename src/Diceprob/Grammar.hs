@@ -4,8 +4,6 @@ module Diceprob.Grammar where
 
 import Data.Text (Text)
 
-import Diceprob.Dice (Dice)
-
 data Stmt = Stmts [Stmt]
           | AssignmentExpr AssignmentExpr
           | OutputExpr OutputExpr
@@ -18,6 +16,8 @@ data OutputExpr = Output ValueExpr (Maybe Text)
                 deriving (Show)
 
 data ValueExpr = Literal Literal
+               | DiceLiteral ValueExpr
+               | DiceCollectionLiteral ValueExpr ValueExpr
                | Variable Text
                | Negation ValueExpr
                | Sum ValueExpr ValueExpr
@@ -50,8 +50,7 @@ data SequenceElement = SequenceValue ValueExpr
 
 type Sequence = [SequenceElement]
 
+-- XXX merge with ValueExpr
 data Literal = IntegerLiteral Integer
              | SequenceLiteral Sequence
-             | DiceLiteral Dice
-             | DiceCollectionLiteral [Dice]
              deriving (Show)

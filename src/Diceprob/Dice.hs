@@ -5,6 +5,7 @@
 module Diceprob.Dice (
   Dice,
   dn,
+  mdn,
   dSeq,
   dValues,
   uniformPMF,
@@ -41,6 +42,9 @@ instance Op Dice where
 
 dn :: Integer -> Dice
 dn n = Dice { pmf = uniformPMF [1..n] }
+
+mdn :: Integer -> Integer -> [Dice]
+mdn m n = replicate (fromIntegral m) (dn n)
 
 dSeq :: [Integer] -> Dice
 dSeq seq' = Dice { pmf = uniformPMF seq' }
