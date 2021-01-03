@@ -32,12 +32,22 @@ eval eval' what = fst $ runState (eval' what) empty
 evalStmt :: Stmt -> Eval [Output]
 evalStmt (Stmts stmts)         = concat   <$> mapM evalStmt stmts
 evalStmt (AssignmentExpr expr) = const [] <$> evalAssignmentExpr expr
+evalStmt (LoopExpr expr)       = concat   <$> evalLoopExpr expr
 evalStmt (OutputExpr expr)     = (:[])    <$> evalOutputExpr expr
 
 evalAssignmentExpr :: AssignmentExpr -> Eval ()
 evalAssignmentExpr (Assignment var expr) = do
   val <- evalValueExpr expr
   modify (insert var val)
+
+evalLoopExpr :: LoopExpr -> Eval [[Output]]
+evalLoopExpr (Loop var over stmt) = do
+  over' <- evalValueExpr over
+  case over' of
+    Sequence over'' -> mapM exec over''
+      where assign x = modify $ insert var (Integer x)
+            exec   x = assign x >> evalStmt stmt
+    _               -> error "can only iterate over sequences"
 
 evalOutputExpr :: OutputExpr -> Eval Output
 evalOutputExpr (Output expr name) = do

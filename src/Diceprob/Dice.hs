@@ -6,6 +6,7 @@ module Diceprob.Dice (
   Dice,
   dn,
   mdn,
+  mdn',
   dSeq,
   dValues,
   uniformPMF,
@@ -13,7 +14,7 @@ module Diceprob.Dice (
 ) where
 
 import Data.AEq ((~==))
-import Data.List (groupBy, sort)
+import Data.List (foldl1', groupBy, sort)
 
 import Diceprob.Bool (fromBool)
 import Diceprob.Op
@@ -45,6 +46,9 @@ dn n = Dice { pmf = uniformPMF [1..n] }
 
 mdn :: Integer -> Integer -> [Dice]
 mdn m n = replicate (fromIntegral m) (dn n)
+
+mdn' :: Integer -> Integer -> Dice
+mdn' m n = foldl1' (#+) (mdn m n)
 
 dSeq :: [Integer] -> Dice
 dSeq seq' = Dice { pmf = uniformPMF seq' }

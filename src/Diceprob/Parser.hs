@@ -88,12 +88,18 @@ stmt = do
 
 stmt' :: Parser Stmt
 stmt' = AssignmentExpr <$> assignmentExpr
+      <|> LoopExpr <$> loopExpr
       <|> OutputExpr <$> outputExpr
 
 -- Assignment Expressions
 
 assignmentExpr :: Parser AssignmentExpr
 assignmentExpr = Assignment <$> variable <* symbol ":" <*> valueExpr
+
+-- Loop Expressions
+
+loopExpr :: Parser LoopExpr
+loopExpr = Loop <$ symbol "loop" <*> variable <* symbol "over" <*> valueExpr <* symbol "{" <*> stmt <* symbol "}"
 
 -- Output Expressions
 

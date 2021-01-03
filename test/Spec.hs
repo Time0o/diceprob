@@ -153,3 +153,20 @@ main = hspec $ do
       testValueExpr ["{1,2,3} > {1,2,4}"]  ? Integer 0
       testValueExpr ["{1,2,4} < {1,2,3}"]  ? Integer 0
       testValueExpr ["{1,2,4} > {1,2,3}"]  ? Integer 1
+    it "executes loops" $ do
+      -- XXX strings with vars
+      testStmt [
+          "loop N over {1..4} {",
+          "  output Nd4",
+          "  output 1dN",
+          "}"
+        ] ? [
+          (mdn' 1 4, Nothing),
+          (dn 1, Nothing),
+          (mdn' 2 4, Nothing),
+          (dn 2, Nothing),
+          (mdn' 3 4, Nothing),
+          (dn 3, Nothing),
+          (mdn' 4 4, Nothing),
+          (dn 4, Nothing)
+        ]

@@ -6,11 +6,15 @@ import Data.Text (Text)
 
 data Stmt = Stmts [Stmt]
           | AssignmentExpr AssignmentExpr
+          | LoopExpr LoopExpr
           | OutputExpr OutputExpr
           deriving (Show)
 
 data AssignmentExpr = Assignment Text ValueExpr
                     deriving (Show)
+
+data LoopExpr = Loop Text ValueExpr Stmt
+              deriving (Show)
 
 data OutputExpr = Output ValueExpr (Maybe Text)
                 deriving (Show)
