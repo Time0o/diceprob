@@ -79,9 +79,8 @@ evalSequence s = concat <$> mapM expandElement s
 
 evalValueExpr :: ValueExpr -> Eval Value
 evalValueExpr expr = case expr of
-  Literal l -> case l of
-    IntegerLiteral x  -> return $ Integer x
-    SequenceLiteral x -> Sequence <$> evalSequence x
+  IntegerLiteral x  -> return $ Integer x
+  SequenceLiteral x -> Sequence <$> evalSequence x
   DiceLiteral e -> do
     v <- evalValueExpr e
     let n = valueToInteger v -- XXX custom dice

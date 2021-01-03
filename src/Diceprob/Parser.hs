@@ -61,10 +61,6 @@ sequenceLiteral = lexeme $ char '{' *> sequenceElementLiteral `sepBy` comma <* c
 stringLiteral :: Parser Text
 stringLiteral = lexeme $ fromString <$ char '"' <*> manyTill Lex.charLiteral (char '"')
 
-literal :: Parser Literal
-literal = IntegerLiteral <$> integerLiteral
-        <|> SequenceLiteral <$> sequenceLiteral
-
 variable :: Parser Text
 variable = lexeme $ fromString <$> some (upperChar <|> char '_')
 
@@ -111,7 +107,8 @@ valueExpr = makeExprParser valueTerm valueOperatorTable
 
 valueTerm :: Parser ValueExpr
 valueTerm = parenthesised valueExpr
-          <|> Literal <$> literal
+          <|> IntegerLiteral <$> integerLiteral
+          <|> SequenceLiteral <$> sequenceLiteral
           <|> Variable <$> variable
 
 valueOperatorTable :: [[Operator Parser ValueExpr]]
