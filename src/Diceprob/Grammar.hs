@@ -7,6 +7,7 @@ import Data.Text (Text)
 data Stmt = Stmts [Stmt]
           | AssignmentExpr AssignmentExpr
           | LoopExpr LoopExpr
+          | BranchExpr BranchExpr
           | OutputExpr OutputExpr
           deriving (Show)
 
@@ -15,6 +16,9 @@ data AssignmentExpr = Assignment Text ValueExpr
 
 data LoopExpr = Loop Text ValueExpr Stmt
               deriving (Show)
+
+data BranchExpr = Branch ValueExpr Stmt (Maybe Stmt)
+                deriving (Show)
 
 data OutputExpr = NamedOutput ValueExpr [Either Text Text]
                 | UnnamedOutput ValueExpr

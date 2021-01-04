@@ -34,6 +34,7 @@ evalStmt :: Stmt -> Eval [Output]
 evalStmt (Stmts stmts)         = concat   <$> mapM evalStmt stmts
 evalStmt (AssignmentExpr expr) = const [] <$> evalAssignmentExpr expr
 evalStmt (LoopExpr expr)       = concat   <$> evalLoopExpr expr
+evalStmt (BranchExpr expr)     = evalBranchExpr expr
 evalStmt (OutputExpr expr)     = (:[])    <$> evalOutputExpr expr
 
 evalAssignmentExpr :: AssignmentExpr -> Eval ()
@@ -49,6 +50,18 @@ evalLoopExpr (Loop var over stmt) = do
       where assign x = modify $ insert var (Integer x)
             exec   x = assign x >> evalStmt stmt
     _               -> error "can only iterate over sequences"
+
+evalBranchExpr :: BranchExpr -> Eval [Output]
+evalBranchExpr expr = case expr of
+  Branch cond ifStmt maybeElseStmt -> do
+   cond' <- evalValueExpr cond
+   case cond' of
+     Integer i -> if i == 0 then elseStmt' else ifStmt'
+     _         -> error "condition must be integer"
+     where ifStmt'   = evalStmt ifStmt
+           elseStmt' = case maybeElseStmt of
+              Nothing       -> return []
+              Just elseStmt -> evalStmt elseStmt
 
 evalOutputExpr :: OutputExpr -> Eval Output
 evalOutputExpr out = case out of

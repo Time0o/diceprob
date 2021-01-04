@@ -185,3 +185,21 @@ main = hspec $ do
           (mdn' 4 4, Just "4d4"),
           (dn 4, Just "1d4")
         ]
+    it "executes branches" $ do
+      testStmt [
+          "X: 1",
+          "if X = 1 {",
+          "  output 1",
+          "} else {",
+          "  output 1d6",
+          "}",
+          "X: 0",
+          "if X = 1 {",
+          "  output 1",
+          "} else {",
+          "  output 1d6",
+          "}"
+        ] ? [
+          (dSeq [1], Nothing),
+          (dn 6, Nothing)
+        ]

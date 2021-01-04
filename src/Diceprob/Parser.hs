@@ -96,6 +96,7 @@ stmt = do
 stmt' :: Parser Stmt
 stmt' = AssignmentExpr <$> assignmentExpr
       <|> LoopExpr <$> loopExpr
+      <|> BranchExpr <$> branchExpr
       <|> OutputExpr <$> outputExpr
 
 -- Assignment Expressions
@@ -107,6 +108,11 @@ assignmentExpr = Assignment <$> variable <* symbol ":" <*> valueExpr
 
 loopExpr :: Parser LoopExpr
 loopExpr = Loop <$ symbol "loop" <*> variable <* symbol "over" <*> valueExpr <* symbol "{" <*> stmt <* symbol "}"
+
+-- Branch Expressions
+
+branchExpr :: Parser BranchExpr
+branchExpr = Branch <$ symbol "if" <*> valueExpr <* symbol "{" <*> stmt <* symbol "}" <*> optional (symbol "else" *> symbol "{" *> stmt <* symbol "}")
 
 -- Output Expressions
 
