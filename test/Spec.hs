@@ -8,31 +8,35 @@ import Test.Hspec
 
 import Text.Megaparsec (runParser)
 
-import Diceprob.AST (debugAST)
+import Diceprob.AST (AST, debugAST)
 import Diceprob.Dice
 import Diceprob.Eval
 import Diceprob.Op
 import Diceprob.Parser
 import Diceprob.Value
 
-testEval :: Parser a -> (a -> Eval b) -> [String] -> b
-testEval parser eval' input = case ast of
+testAST :: Parser a -> [String] -> AST a
+testAST parser = runParser parser "input.ad" . fromString . unlines
+
+testEval :: (a -> Eval b) -> Parser a -> [String] -> b
+testEval eval' parser input =
+  let ast = testAST parser input
+  in case ast of
     Left parseError -> error . debugAST $ parseError
     Right ast'      -> eval eval' ast'
-  where ast = runParser parser "input.ad" (fromString . unlines $ input)
 
 testStmt :: [String] -> [Output]
-testStmt = testEval stmt evalStmt
+testStmt = testEval evalStmt stmt
 
 testValueExpr :: [String] -> Value
-testValueExpr = testEval valueExpr evalValueExpr
+testValueExpr = testEval evalValueExpr valueExpr
 
 (?) :: (Show a, Eq a) => a -> a -> Expectation
 (?) = shouldBe
 
 main :: IO ()
 main = hspec $ do
-  describe "evalValueExpr" $ do
+  describe "diceprob" $ do
     it "performs arithmetic" $ do
       testValueExpr ["1+2"] ? Integer 3
       testValueExpr ["3-2"] ? Integer 1
@@ -118,9 +122,9 @@ main = hspec $ do
           "output 2d2 + 10 named \"12, 13, 13, 14\"",
           "output 2d2 > d3 named \"1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1\""
         ] ? [
-          (dn 2 #+ dn 2, Just "2, 3, 3, 4"),
-          (dn 2 #+ dn 2 #+ dSeq [10], Just "12, 13, 13, 14"),
-          (dn 2 #+ dn 2 #> dn 3, Just "1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1")
+          (mdn' 2 2, Just "2, 3, 3, 4"),
+          (mdn' 2 2 #+ dSeq [10], Just "12, 13, 13, 14"),
+          (mdn' 2 2 #> dn 3, Just "1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1")
         ]
     it "evaluates sequences" $ do
       testStmt [

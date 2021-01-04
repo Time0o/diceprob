@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 
-module Diceprob.AST (buildAST, debugAST) where
+module Diceprob.AST (AST, buildAST, debugAST) where
 
 import Data.String (fromString)
 import Data.Text (Text)
@@ -11,7 +11,9 @@ import Text.Megaparsec (ParseErrorBundle, errorBundlePretty, runParser)
 import Diceprob.Grammar (Stmt)
 import Diceprob.Parser (stmt)
 
-buildAST :: (String, String) -> Either (ParseErrorBundle Text Void) Stmt
+type AST a = Either (ParseErrorBundle Text Void) a
+
+buildAST :: (String, String) -> AST Stmt
 buildAST (scriptName, scriptContent) = runParser stmt scriptName (fromString scriptContent)
 
 debugAST :: (ParseErrorBundle Text Void) -> String

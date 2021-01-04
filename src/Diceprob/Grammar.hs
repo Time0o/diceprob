@@ -24,20 +24,6 @@ data OutputExpr = NamedOutput ValueExpr [Either Text Text]
                 | UnnamedOutput ValueExpr
                 deriving (Show)
 
-data Range = Range ValueExpr ValueExpr
-           deriving (Show)
-
-data Repeat = RepeatValue ValueExpr ValueExpr
-            | RepeatRange Range ValueExpr
-            deriving (Show)
-
-data SequenceElement = SequenceValue ValueExpr
-                     | SequenceRange Range
-                     | SequenceRepeat Repeat
-                     deriving (Show)
-
-type Sequence = [SequenceElement]
-
 data ValueExpr = IntegerLiteral Integer
                | SequenceLiteral Sequence
                | DiceLiteral ValueExpr
@@ -59,3 +45,17 @@ data ValueExpr = IntegerLiteral Integer
                | And ValueExpr ValueExpr
                | Or ValueExpr ValueExpr
                deriving (Show)
+
+data Range = Range ValueExpr ValueExpr
+           deriving (Show)
+
+data Repeat = RepeatValue ValueExpr ValueExpr
+            | RepeatRange Range ValueExpr
+            deriving (Show)
+
+data SequenceElement = SequenceValue ValueExpr
+                     | SequenceRange Range
+                     | SequenceRepeat Repeat
+                     deriving (Show)
+
+type Sequence = [SequenceElement]

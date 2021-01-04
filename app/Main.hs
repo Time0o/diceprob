@@ -8,7 +8,7 @@ import Diceprob.AST (buildAST, debugAST)
 import Diceprob.Eval (eval, evalStmt)
 
 data Diceprob = Diceprob {script :: String}
-                deriving (Show, Data, Typeable)
+                deriving (Data, Show, Typeable)
 
 diceprob :: Diceprob
 diceprob = Diceprob{script = def &= args &= typ "SCRIPT"}
@@ -28,7 +28,7 @@ main :: IO ()
 main = do
   maybeScript <- readScript
   case maybeScript of
-    Nothing -> error "no input file specified"
-    Just (buf) -> case buildAST buf of
-      (Left parseError) -> putStrLn . debugAST $ parseError
-      (Right stmt) -> putStrLn . show . eval evalStmt $ stmt
+    Nothing  -> error "no input file specified"
+    Just buf -> case buildAST buf of
+      Left parseError -> putStrLn . debugAST $ parseError
+      Right stmt      -> putStrLn . show . eval evalStmt $ stmt

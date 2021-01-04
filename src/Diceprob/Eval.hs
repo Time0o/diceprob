@@ -31,25 +31,26 @@ eval :: (a -> Eval b) -> (a -> b)
 eval eval' what = fst $ runState (eval' what) empty
 
 evalStmt :: Stmt -> Eval [Output]
-evalStmt (Stmts stmts)         = concat   <$> mapM evalStmt stmts
-evalStmt (AssignmentExpr expr) = const [] <$> evalAssignmentExpr expr
-evalStmt (LoopExpr expr)       = concat   <$> evalLoopExpr expr
-evalStmt (BranchExpr expr)     = evalBranchExpr expr
-evalStmt (OutputExpr expr)     = (:[])    <$> evalOutputExpr expr
+evalStmt expr = case expr of
+  Stmts stmts          -> concat   <$> mapM evalStmt stmts
+  AssignmentExpr expr' -> const [] <$> evalAssignmentExpr expr'
+  LoopExpr expr'       -> concat   <$> evalLoopExpr expr'
+  BranchExpr expr'     -> id       <$> evalBranchExpr expr'
+  OutputExpr expr'     -> (:[])    <$> evalOutputExpr expr'
 
 evalAssignmentExpr :: AssignmentExpr -> Eval ()
 evalAssignmentExpr (Assignment var expr) = do
   val <- evalValueExpr expr
-  modify (insert var val)
+  modify $ insert var val
 
 evalLoopExpr :: LoopExpr -> Eval [[Output]]
 evalLoopExpr (Loop var over stmt) = do
   over' <- evalValueExpr over
   case over' of
     Sequence over'' -> mapM exec over''
-      where assign x = modify $ insert var (Integer x)
-            exec   x = assign x >> evalStmt stmt
     _               -> error "can only iterate over sequences"
+    where assign x = modify $ insert var (Integer x)
+          exec   x = assign x >> evalStmt stmt
 
 evalBranchExpr :: BranchExpr -> Eval [Output]
 evalBranchExpr expr = case expr of
@@ -66,7 +67,7 @@ evalBranchExpr expr = case expr of
 evalOutputExpr :: OutputExpr -> Eval Output
 evalOutputExpr out = case out of
   NamedOutput val name -> do
-    val'  <- valueToDice <$> evalValueExpr val
+    val'  <- valueToDice  <$> evalValueExpr val
     name' <- foldl1' (<>) <$> mapM tryExpandVariable name
     return (val', Just name')
       where tryExpandVariable s = case s of
@@ -101,13 +102,12 @@ evalSequenceRepeat r = do
               RepeatValue _ t -> evalValueExpr t
               RepeatRange _ t -> evalValueExpr t
     case times of
-      Integer times' -> return $ concat . replicate (fromIntegral times') $ what
+      Integer times' -> return . concat . replicate (fromIntegral times') $ what
       _              -> error "sequence multiplier must be an integer"
 
 evalSequence :: Sequence -> Eval [Integer]
 evalSequence s = concat <$> mapM expandElement s
-  where expandElement :: SequenceElement -> Eval [Integer]
-        expandElement e = case e of
+  where expandElement e = case e of
           SequenceValue v  -> evalSequenceValue v
           SequenceRange r  -> evalSequenceRange r
           SequenceRepeat r -> evalSequenceRepeat r
@@ -116,7 +116,7 @@ evalVariable :: Text -> Eval Value
 evalVariable var = do
   env <- get
   case lookup var env of
-    Just x -> return x
+    Just x  -> return x
     Nothing -> error $ "variable '" ++ show var ++ "' not defined"
 
 evalValueExpr :: ValueExpr -> Eval Value
@@ -131,17 +131,17 @@ evalValueExpr expr = case expr of
     v <- evalValueExpr e
     v' <- evalValueExpr e'
     let (m, n) = (valueToInteger v, valueToInteger v') -- XXX custom dice
-    return $ DiceCollection (mdn m n)
+    return . DiceCollection $ mdn m n
   Variable var -> evalVariable var
-  Negation e          -> valueUnaryOp  (#-)  <$> evalValueExpr e
-  Sum e e'            -> valueBinaryOp (#+)  <$> evalValueExpr e <*> evalValueExpr e'
-  Subtraction e e'    -> valueBinaryOp (#--) <$> evalValueExpr e <*> evalValueExpr e'
-  Product e e'        -> valueBinaryOp (#*)  <$> evalValueExpr e <*> evalValueExpr e'
-  Division e e'       -> valueBinaryOp (#/)  <$> evalValueExpr e <*> evalValueExpr e'
-  Exponentiation e e' -> valueBinaryOp (#^)  <$> evalValueExpr e <*> evalValueExpr e'
-  Not e               -> valueUnaryOp  (#!)  <$> evalValueExpr e
-  And e1 e2           -> valueBinaryOp (#&)  <$> evalValueExpr e1 <*> evalValueExpr e2
-  Or e1 e2            -> valueBinaryOp (#|)  <$> evalValueExpr e1 <*> evalValueExpr e2
+  Negation e          -> valueUnaryOp  (#-)          <$> evalValueExpr e
+  Sum e e'            -> valueBinaryOp (#+)          <$> evalValueExpr e <*> evalValueExpr e'
+  Subtraction e e'    -> valueBinaryOp (#--)         <$> evalValueExpr e <*> evalValueExpr e'
+  Product e e'        -> valueBinaryOp (#*)          <$> evalValueExpr e <*> evalValueExpr e'
+  Division e e'       -> valueBinaryOp (#/)          <$> evalValueExpr e <*> evalValueExpr e'
+  Exponentiation e e' -> valueBinaryOp (#^)          <$> evalValueExpr e <*> evalValueExpr e'
+  Not e               -> valueUnaryOp  (#!)          <$> evalValueExpr e
+  And e1 e2           -> valueBinaryOp (#&)          <$> evalValueExpr e1 <*> evalValueExpr e2
+  Or e1 e2            -> valueBinaryOp (#|)          <$> evalValueExpr e1 <*> evalValueExpr e2
   Equal e e'          -> valueSequenceBinaryOp (#=)  <$> evalValueExpr e <*> evalValueExpr e'
   NotEqual e e'       -> valueSequenceBinaryOp (#!=) <$> evalValueExpr e <*> evalValueExpr e'
   Smaller e e'        -> valueSequenceBinaryOp (#<)  <$> evalValueExpr e <*> evalValueExpr e'

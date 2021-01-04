@@ -16,7 +16,7 @@ module Diceprob.Dice (
 ) where
 
 import Data.AEq ((~==))
-import Data.List (foldl1', groupBy, sort)
+import Data.List (foldl', foldl1', groupBy, sort)
 
 import Diceprob.Bool (fromBool)
 import Diceprob.Op
@@ -52,7 +52,7 @@ mdn m n
   | otherwise = replicate (fromIntegral m) (dn n)
 
 mdn' :: Integer -> Integer -> Dice
-mdn' m n = foldl1' (#+) (mdn m n)
+mdn' m n = foldl1' (#+) $ mdn m n
 
 dSeq :: [Integer] -> Dice
 dSeq seq' = Dice { pmf = uniformPMF seq' }
@@ -84,7 +84,7 @@ diceCombine f d d' = Dice { pmf = reducePMF . groupPMF $ pmfsCombined }
   where pmfsCombined = [(f x y, px * py) | (x, px) <- pmf d, (y, py) <- pmf d']
 
 reducePMF :: [PMF] -> PMF
-reducePMF = map $ foldl (\(_,p) (x,p') -> (x,p + p')) (0,0)
+reducePMF = map $ foldl' (\(_,p) (x,p') -> (x,p + p')) (0,0)
 
 groupPMF :: PMF -> [PMF]
 groupPMF = groupBy (\a b -> fst a == fst b) . sort
