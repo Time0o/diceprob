@@ -132,12 +132,12 @@ main = hspec $ do
           "output {d4} named \"1, 2, 3, 4\"",
           "output {} named \"the empty sequence\""
         ] ? [
-          (dSeq [1, 2, 3], Just "1, 2, 3"),
-          (dSeq [1, 2, 3], Just "1, 2, 3"),
+          (dSeq [1..3], Just "1, 2, 3"),
+          (dSeq [1..3], Just "1, 2, 3"),
           (dSeq [1, 1, 1, 1, 2, 3], Just "1, 1, 1, 1, 2, 3"),
           (dSeq [1, 2, 3, 1, 2, 3], Just "1, 2, 3, 1, 2, 3"),
           (dSeq [1, 2, 4, 1, 2, 4, 5, 6], Just "1, 2, 4, 1, 2, 4, 5, 6"),
-          (dSeq [1, 2, 3, 4], Just "1, 2, 3, 4"),
+          (dSeq [1..4], Just "1, 2, 3, 4"),
           (dSeq [], Just "the empty sequence")
         ]
     it "compares sequences" $ do
@@ -153,20 +153,35 @@ main = hspec $ do
       testValueExpr ["{1,2,3} > {1,2,4}"]  ? Integer 0
       testValueExpr ["{1,2,4} < {1,2,3}"]  ? Integer 0
       testValueExpr ["{1,2,4} > {1,2,3}"]  ? Integer 1
+    it "expands variables in strings" $ do
+      testStmt [
+          "X: 4",
+          "output X named \"this is a [X]\"",
+          "X: d4",
+          "output X named \"this is a [X]\"",
+          "X: 2d4",
+          "output X named \"this is a [X]\"",
+          "X: {1..4}",
+          "output X named \"this is a [X]\""
+        ] ? [
+          (dSeq [4], Just "this is a 4"),
+          (dn 4, Just "this is a d4"),
+          (mdn' 2 4, Just "this is a 2d4"),
+          (dSeq [1..4], Just "this is a {?}")
+        ]
     it "executes loops" $ do
-      -- XXX strings with vars
       testStmt [
           "loop N over {1..4} {",
-          "  output Nd4",
-          "  output 1dN",
+          "  output Nd4 named \"[N]d4\"",
+          "  output 1dN named \"1d[N]\"",
           "}"
         ] ? [
-          (mdn' 1 4, Nothing),
-          (dn 1, Nothing),
-          (mdn' 2 4, Nothing),
-          (dn 2, Nothing),
-          (mdn' 3 4, Nothing),
-          (dn 3, Nothing),
-          (mdn' 4 4, Nothing),
-          (dn 4, Nothing)
+          (mdn' 1 4, Just "1d4"),
+          (dn 1, Just "1d1"),
+          (mdn' 2 4, Just "2d4"),
+          (dn 2, Just "1d2"),
+          (mdn' 3 4, Just "3d4"),
+          (dn 3, Just "1d3"),
+          (mdn' 4 4, Just "4d4"),
+          (dn 4, Just "1d4")
         ]

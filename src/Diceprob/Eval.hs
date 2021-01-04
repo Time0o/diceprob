@@ -14,6 +14,7 @@ import Prelude hiding (lookup)
 
 import Control.Monad.Trans.State.Lazy (State, modify, get, runState)
 
+import Data.List (foldl1')
 import Data.Text (Text)
 import Data.HashMap.Strict (HashMap, empty, insert, lookup)
 
@@ -50,9 +51,20 @@ evalLoopExpr (Loop var over stmt) = do
     _               -> error "can only iterate over sequences"
 
 evalOutputExpr :: OutputExpr -> Eval Output
-evalOutputExpr (Output expr name) = do
-  val <- evalValueExpr $ expr
-  return (valueToDice val, name)
+evalOutputExpr out = case out of
+  NamedOutput val name -> do
+    val'  <- valueToDice <$> evalValueExpr val
+    name' <- foldl1' (<>) <$> mapM tryExpandVariable name
+    return (val', Just name')
+      where tryExpandVariable s = case s of
+              Left s' -> do
+                return s'
+              Right var -> do
+                var' <- evalVariable var
+                return $ valueToText var'
+  UnnamedOutput val -> do
+    val' <- valueToDice <$> evalValueExpr val
+    return (val', Nothing)
 
 evalSequenceValue :: ValueExpr -> Eval [Integer]
 evalSequenceValue v = do
@@ -87,6 +99,13 @@ evalSequence s = concat <$> mapM expandElement s
           SequenceRange r  -> evalSequenceRange r
           SequenceRepeat r -> evalSequenceRepeat r
 
+evalVariable :: Text -> Eval Value
+evalVariable var = do
+  env <- get
+  case lookup var env of
+    Just x -> return x
+    Nothing -> error $ "variable '" ++ show var ++ "' not defined"
+
 evalValueExpr :: ValueExpr -> Eval Value
 evalValueExpr expr = case expr of
   IntegerLiteral x  -> return $ Integer x
@@ -100,11 +119,7 @@ evalValueExpr expr = case expr of
     v' <- evalValueExpr e'
     let (m, n) = (valueToInteger v, valueToInteger v') -- XXX custom dice
     return $ DiceCollection (mdn m n)
-  Variable v -> do
-    env <- get
-    case lookup v env of
-      Just x -> return x
-      Nothing -> error $ "variable '" ++ show v ++ "' not defined"
+  Variable var -> evalVariable var
   Negation e          -> valueUnaryOp  (#-)  <$> evalValueExpr e
   Sum e e'            -> valueBinaryOp (#+)  <$> evalValueExpr e <*> evalValueExpr e'
   Subtraction e e'    -> valueBinaryOp (#--) <$> evalValueExpr e <*> evalValueExpr e'

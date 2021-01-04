@@ -16,7 +16,8 @@ data AssignmentExpr = Assignment Text ValueExpr
 data LoopExpr = Loop Text ValueExpr Stmt
               deriving (Show)
 
-data OutputExpr = Output ValueExpr (Maybe Text)
+data OutputExpr = NamedOutput ValueExpr [Either Text Text]
+                | UnnamedOutput ValueExpr
                 deriving (Show)
 
 data Range = Range ValueExpr ValueExpr

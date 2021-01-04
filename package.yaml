@@ -18,6 +18,7 @@ dependencies:
 - ieee754
 - megaparsec
 - parser-combinators
+- replace-megaparsec
 - text
 - transformers
 - unordered-containers

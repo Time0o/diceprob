@@ -1,14 +1,16 @@
 {-# OPTIONS_GHC -Wall -Wno-unused-imports #-}
 
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE OverloadedStrings, RankNTypes #-}
 
 module Diceprob.Value where
 
 import Prelude hiding (toInteger)
 
 import Data.List (foldl1')
+import Data.String (fromString)
+import Data.Text (Text)
 
-import Diceprob.Dice (Dice, dSeq, dValues)
+import Diceprob.Dice (Dice, dSeq, dValues, dType)
 import Diceprob.Integer
 import Diceprob.Op
 
@@ -61,3 +63,15 @@ valueToDice v = case v of
   Sequence x       -> dSeq x
   Dice x           -> x
   DiceCollection x -> foldl1' (#+) x
+
+valueToText :: Value -> Text
+valueToText v = case v of
+  Integer x  -> fromString . show $ x
+  Sequence _ -> "{?}"
+  Dice x -> case dType x of
+    Left n   -> fromString $ "d" ++ show n
+    Right [] -> "d{}"
+    Right _  -> "d{?}"
+  DiceCollection x -> m <> d
+    where m = fromString . show . length $ x
+          d = valueToText . Dice . head $ x

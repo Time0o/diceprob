@@ -9,6 +9,8 @@ module Diceprob.Dice (
   mdn',
   dSeq,
   dValues,
+  dProbabilities,
+  dType,
   uniformPMF,
   pmfEqual
 ) where
@@ -55,6 +57,21 @@ dSeq seq' = Dice { pmf = uniformPMF seq' }
 
 dValues :: Dice -> [Integer]
 dValues = map fst . pmf
+
+dProbabilities :: Dice -> [Double]
+dProbabilities = map snd . pmf
+
+dType :: Dice -> Either Integer [Integer]
+dType d
+  | empty                          = Right []
+  | not consecutive || not uniform = Right values
+  | otherwise                      = Left numValues
+    where values        = dValues d
+          numValues     = fromIntegral . length $ values
+          probabilities = dProbabilities d
+          empty         = values == []
+          consecutive   = values == [1..numValues]
+          uniform       = all (== head probabilities) (tail probabilities)
 
 diceMap :: (Integer -> Integer) -> Dice -> Dice
 diceMap f d = Dice { pmf = reducePMF . groupPMF $ pmfMapped }

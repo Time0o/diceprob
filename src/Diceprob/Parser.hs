@@ -16,6 +16,7 @@ import Data.String (fromString)
 import Data.Text (Text)
 import Data.Void (Void)
 
+import Replace.Megaparsec (splitCap)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as Lex
@@ -58,11 +59,17 @@ sequenceLiteral :: Parser Sequence
 sequenceLiteral = lexeme $ char '{' *> sequenceElementLiteral `sepBy` comma <* char '}'
   where comma = space *> char ',' *> space
 
-stringLiteral :: Parser Text
-stringLiteral = lexeme $ fromString <$ char '"' <*> manyTill Lex.charLiteral (char '"')
+stringLiteral :: Parser [Either Text Text]
+stringLiteral = lexeme $ splitCap variableExpansion . fromString <$ char '"' <*> manyTill Lex.charLiteral (char '"')
+
+variable' :: Parser Text
+variable' = fromString <$> some (upperChar <|> char '_')
 
 variable :: Parser Text
-variable = lexeme $ fromString <$> some (upperChar <|> char '_')
+variable = lexeme $ variable'
+
+variableExpansion :: Parser Text
+variableExpansion = symbol "[" *> variable' <* symbol "]"
 
 parenthesised :: Parser a -> Parser a
 parenthesised = between (symbol "(") (symbol ")")
@@ -104,7 +111,10 @@ loopExpr = Loop <$ symbol "loop" <*> variable <* symbol "over" <*> valueExpr <* 
 -- Output Expressions
 
 outputExpr :: Parser OutputExpr
-outputExpr = Output <$ symbol "output" <*> valueExpr <*> optional (symbol "named" *> stringLiteral)
+outputExpr = try namedOutput
+           <|> unnamedOutput
+  where namedOutput = NamedOutput <$ symbol "output" <*> valueExpr <* symbol "named" <*> stringLiteral
+        unnamedOutput = UnnamedOutput <$ symbol "output" <*> valueExpr
 
 -- Value Expressions
 
