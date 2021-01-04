@@ -47,7 +47,9 @@ dn :: Integer -> Dice
 dn n = Dice { pmf = uniformPMF [1..n] }
 
 mdn :: Integer -> Integer -> [Dice]
-mdn m n = replicate (fromIntegral m) (dn n)
+mdn m n
+  | m <= 0    = error "number of dice must be positive"
+  | otherwise = replicate (fromIntegral m) (dn n)
 
 mdn' :: Integer -> Integer -> Dice
 mdn' m n = foldl1' (#+) (mdn m n)
