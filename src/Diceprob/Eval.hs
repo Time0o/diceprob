@@ -139,12 +139,13 @@ evalValueExpr expr = case expr of
   Product e e'        -> valueBinaryOp (#*)          <$> evalValueExpr e <*> evalValueExpr e'
   Division e e'       -> valueBinaryOp (#/)          <$> evalValueExpr e <*> evalValueExpr e'
   Exponentiation e e' -> valueBinaryOp (#^)          <$> evalValueExpr e <*> evalValueExpr e'
-  Not e               -> valueUnaryOp  (#!)          <$> evalValueExpr e
-  And e1 e2           -> valueBinaryOp (#&)          <$> evalValueExpr e1 <*> evalValueExpr e2
-  Or e1 e2            -> valueBinaryOp (#|)          <$> evalValueExpr e1 <*> evalValueExpr e2
   Equal e e'          -> valueSequenceBinaryOp (#=)  <$> evalValueExpr e <*> evalValueExpr e'
   NotEqual e e'       -> valueSequenceBinaryOp (#!=) <$> evalValueExpr e <*> evalValueExpr e'
   Smaller e e'        -> valueSequenceBinaryOp (#<)  <$> evalValueExpr e <*> evalValueExpr e'
   Greater e e'        -> valueSequenceBinaryOp (#>)  <$> evalValueExpr e <*> evalValueExpr e'
   AtMost e e'         -> valueSequenceBinaryOp (#<=) <$> evalValueExpr e <*> evalValueExpr e'
   AtLeast e e'        -> valueSequenceBinaryOp (#>=) <$> evalValueExpr e <*> evalValueExpr e'
+  Not e               -> valueUnaryOp  (#!)          <$> evalValueExpr e
+  And e1 e2           -> valueBinaryOp (#&)          <$> evalValueExpr e1 <*> evalValueExpr e2
+  Or e1 e2            -> valueBinaryOp (#|)          <$> evalValueExpr e1 <*> evalValueExpr e2
+  Length e            -> Integer . valueLength       <$> evalValueExpr e

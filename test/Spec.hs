@@ -157,6 +157,12 @@ main = hspec $ do
       testValueExpr ["{1,2,3} > {1,2,4}"]  ? Integer 0
       testValueExpr ["{1,2,4} < {1,2,3}"]  ? Integer 0
       testValueExpr ["{1,2,4} > {1,2,3}"]  ? Integer 1
+    it "performs introspection" $ do
+      testValueExpr ["#{2,4,6}"] ? Integer 3
+      testValueExpr ["#(3d6)"]   ? Integer 3
+      testValueExpr ["#3d6"]     ? DiceCollection (mdn 1 6)
+      testValueExpr ["#d6"]      ? Integer 1
+      testValueExpr ["#123"]     ? Integer 3
     it "expands variables in strings" $ do
       testStmt [
           "X: 4",

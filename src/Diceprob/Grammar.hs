@@ -44,6 +44,7 @@ data ValueExpr = IntegerLiteral Integer
                | Not ValueExpr
                | And ValueExpr ValueExpr
                | Or ValueExpr ValueExpr
+               | Length ValueExpr
                deriving (Show)
 
 data Range = Range ValueExpr ValueExpr

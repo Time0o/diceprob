@@ -75,3 +75,10 @@ valueToText v = case v of
   DiceCollection x -> m <> d
     where m = fromString . show . length $ x
           d = valueToText . Dice . head $ x
+
+valueLength :: Value -> Integer
+valueLength v = case v of
+  Integer x        -> fromIntegral . length . show $ x
+  Sequence x       -> fromIntegral . length $ x
+  Dice x           -> 1
+  DiceCollection x -> fromIntegral . length $ x
