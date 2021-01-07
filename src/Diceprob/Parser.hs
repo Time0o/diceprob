@@ -141,11 +141,7 @@ valueTerm = parenthesised valueExpr
           <|> Variable        <$> variable
 
 valueOperatorTable :: [[Operator Parser ValueExpr]]
-valueOperatorTable = [[unaryOp "d" DiceLiteral,
-                       unaryOp "+" id,
-                       unaryOp "-" Negation,
-                       unaryOp "!" Not,
-                       unaryOp "#" Length],
+valueOperatorTable = [[Prefix unaryOps],
                       [binaryOp "d" DiceCollectionLiteral],
                       [binaryOp "^" Exponentiation],
                       [binaryOp "*" Product, binaryOp "/" Division],
@@ -158,8 +154,12 @@ valueOperatorTable = [[unaryOp "d" DiceLiteral,
                        binaryOp ">" Greater],
                       [binaryOp "&" And, binaryOp "|" Or]]
 
-unaryOp :: Text -> (a -> a) -> Operator Parser a
-unaryOp name f = Prefix (f <$ symbol name)
+unaryOps :: Parser (ValueExpr -> ValueExpr)
+unaryOps = foldr1 (.) <$> some (DiceLiteral <$ symbol "d"
+                                <|> id <$ symbol "+"
+                                <|> Negation <$ symbol "-"
+                                <|> Not <$ symbol "!"
+                                <|> Length <$ symbol "#")
 
 binaryOp :: Text -> (a -> a -> a) -> Operator Parser a
 binaryOp name f = InfixL (f <$ symbol name)
