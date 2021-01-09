@@ -6,13 +6,14 @@ module Diceprob.Value where
 
 import Prelude hiding (toInteger)
 
+import Data.Char (digitToInt)
 import Data.List (foldl1')
 import Data.Text (Text)
 
-import Diceprob.Dice (Dice, dSeq, dValues, dType)
+import Diceprob.Dice (Dice, dSeq, dValues, dType, dKeep)
 import Diceprob.Integer
 import Diceprob.Op
-import Diceprob.Text (textShow)
+import Diceprob.Text
 
 data Value = Integer Int
            | Sequence [Int]
@@ -82,3 +83,17 @@ valueLength v = case v of
   Sequence x       -> length x
   Dice _           -> 1
   DiceCollection x -> length x
+
+valueAccess :: Value -> Value -> Value
+valueAccess vi v = case (vi, v) of
+  (Integer i, Integer _)        -> Integer $ if i <= 0 || i > textLength t
+                                             then 0
+                                             else digitToInt $ textAt t (i - 1)
+                                     where t = valueToText v
+  (Integer i, Sequence x)       -> Integer $ if i <= 0 || i > length x
+                                             then 0
+                                             else x !! (i - 1)
+  (Integer i, Dice x)           -> Dice $ if i == 1 then x else dSeq [0]
+  (Integer i, DiceCollection x) -> Dice $ dKeep x [i]
+  -- XXX Sequences
+  _                             -> error "position selector must be number or sequence"

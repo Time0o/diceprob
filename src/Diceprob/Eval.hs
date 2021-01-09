@@ -149,3 +149,4 @@ evalValueExpr expr = case expr of
   And e1 e2           -> valueBinaryOp (#&)          <$> evalValueExpr e1 <*> evalValueExpr e2
   Or e1 e2            -> valueBinaryOp (#|)          <$> evalValueExpr e1 <*> evalValueExpr e2
   Length e            -> Integer . valueLength       <$> evalValueExpr e
+  ValueAccess e1 e2   -> valueAccess                 <$> evalValueExpr e1 <*> evalValueExpr e2

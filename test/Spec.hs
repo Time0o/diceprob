@@ -157,12 +157,26 @@ main = hspec $ do
       testValueExpr ["{1,2,3} > {1,2,4}"]  ? Integer 0
       testValueExpr ["{1,2,4} < {1,2,3}"]  ? Integer 0
       testValueExpr ["{1,2,4} > {1,2,3}"]  ? Integer 1
-    it "performs introspection" $ do
-      testValueExpr ["#{2,4,6}"] ? Integer 3
-      testValueExpr ["#(3d6)"]   ? Integer 3
-      testValueExpr ["#3d6"]     ? DiceCollection (mdn 1 6)
-      testValueExpr ["#d6"]      ? Integer 1
-      testValueExpr ["#123"]     ? Integer 3
+    it "performs introspection (length)" $ do
+      testValueExpr ["#{2,4,6}"]  ? Integer 3
+      testValueExpr ["#(3d6)"]    ? Integer 3
+      testValueExpr ["#3d6"]      ? DiceCollection (mdn 1 6)
+      testValueExpr ["#d6"]       ? Integer 1
+      testValueExpr ["#123"]      ? Integer 3
+    it "performs introspection (value access)" $ do
+      testValueExpr ["1@{2,4,6}"] ? Integer 2
+      testValueExpr ["3@{2,4,6}"] ? Integer 6
+      testValueExpr ["1@3d6"]     ? Dice (dKeep (mdn 3 6) [1])
+      testValueExpr ["3@3d6"]     ? Dice (dKeep (mdn 3 6) [3])
+      testValueExpr ["1@d6"]      ? Dice (dn 6)
+      testValueExpr ["2@d6"]      ? Dice (dSeq [0])
+      testValueExpr ["1@246"]     ? Integer 2
+      testValueExpr ["3@246"]     ? Integer 6
+      pmfEqual [(1,0.0046),(2,0.0324),(3,0.0880),
+                (4,0.1713),(5,0.2824),(6,0.4213)] (dKeep (mdn 3 6) [1])   ? True
+      pmfEqual [(1,0.4213),(2,0.2824),(3,0.1713),
+                (4,0.0880), (5,0.0324), (6,0.0046)] (dKeep (mdn 3 6) [3]) ? True
+      -- XXX change position order
     it "expands variables in strings" $ do
       testStmt [
           "X: 4",

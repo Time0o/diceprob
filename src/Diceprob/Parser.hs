@@ -143,6 +143,7 @@ valueTerm = parenthesised valueExpr
 valueOperatorTable :: [[Operator Parser ValueExpr]]
 valueOperatorTable = [[Prefix unaryOps],
                       [binaryOp "d" DiceCollectionLiteral],
+                      [binaryOp "@" ValueAccess],
                       [binaryOp "^" Exponentiation],
                       [binaryOp "*" Product, binaryOp "/" Division],
                       [binaryOp "+" Sum, binaryOp "-" Subtraction],

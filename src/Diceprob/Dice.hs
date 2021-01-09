@@ -11,6 +11,7 @@ module Diceprob.Dice (
   dValues,
   dProbabilities,
   dType,
+  dKeep,
   uniformPMF,
   pmfEqual
 ) where
@@ -75,6 +76,12 @@ dType d
           consecutive   = values == [1..numValues]
           uniform       = all (== head probabilities) (tail probabilities)
 
+dKeep :: [Dice] -> [Int] -> Dice
+dKeep ds keep = Dice { pmf = reducePMF . groupPMF $ pmfDiscarded }
+  where discard xs   = map snd $ filter (\(i,_) -> i `elem` keep) $ zip [1..] xs
+        pmfCross     = crossPMF . map pmf $ ds
+        pmfDiscarded = map (\(xs,p) -> (sum . discard $ xs,p)) pmfCross
+
 diceMap :: (Int -> Int) -> Dice -> Dice
 diceMap f d = Dice { pmf = reducePMF . groupPMF $ pmfMapped }
   where pmfMapped = map (\(x,p) -> (f x,p)) $ pmf d
@@ -94,7 +101,12 @@ uniformPMF domain = zip domain (replicate n p)
   where n = length $ domain :: Int
         p = 1.0 / fromIntegral n :: Double
 
+crossPMF :: [PMF] -> [([Int], Double)]
+crossPMF pmfs = map collect $ sequence pmfs
+  where collect comb = (reverse . sort . map fst $ comb, product . map snd $ comb)
+
 pmfEqual :: PMF -> Dice -> Bool
-pmfEqual pmf' d = (v == v') && (all id $ zipWith (~==) p p')
-  where (v,p)   = unzip . pmf $ d
-        (v',p') = unzip pmf'
+pmfEqual pmf' d = (v == v') && (all id $ zipWith approxEq p p')
+  where (v,p)         = unzip . pmf $ d
+        (v',p')       = unzip pmf'
+        approxEq f f' = abs (f - f') / f < 0.01
