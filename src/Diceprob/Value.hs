@@ -80,5 +80,5 @@ valueLength :: Value -> Int
 valueLength v = case v of
   Integer x        -> length . show $ x
   Sequence x       -> length x
-  Dice x           -> 1
+  Dice _           -> 1
   DiceCollection x -> length x
