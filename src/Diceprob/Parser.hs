@@ -52,7 +52,7 @@ commaSeparated = flip sepBy $ space *> char ',' *> space
 
 -- Literals
 
-integerLiteral :: Parser Integer
+integerLiteral :: Parser Int
 integerLiteral = lexeme Lex.decimal
 
 rangeLiteral :: Parser Range

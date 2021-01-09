@@ -80,12 +80,12 @@ evalOutputExpr out = case out of
     val' <- valueToDice <$> evalValueExpr val
     return (val', Nothing)
 
-evalSequenceValue :: ValueExpr -> Eval [Integer]
+evalSequenceValue :: ValueExpr -> Eval [Int]
 evalSequenceValue v = do
   v' <- evalValueExpr v
   return $ valueToSequence v'
 
-evalSequenceRange :: Range -> Eval [Integer]
+evalSequenceRange :: Range -> Eval [Int]
 evalSequenceRange (Range from to) = do
   from' <- evalValueExpr from
   to'   <- evalValueExpr to
@@ -93,7 +93,7 @@ evalSequenceRange (Range from to) = do
     (Integer from'', Integer to'') -> return [from''..to'']
     _                              -> error "sequence range must begin and end with integer"
 
-evalSequenceRepeat :: Repeat -> Eval [Integer]
+evalSequenceRepeat :: Repeat -> Eval [Int]
 evalSequenceRepeat r = do
     what <- case r of
               RepeatValue v _  -> evalSequenceValue v
@@ -102,10 +102,10 @@ evalSequenceRepeat r = do
               RepeatValue _ t -> evalValueExpr t
               RepeatRange _ t -> evalValueExpr t
     case times of
-      Integer times' -> return . concat . replicate (fromIntegral times') $ what
+      Integer times' -> return . concat . replicate times' $ what
       _              -> error "sequence multiplier must be an integer"
 
-evalSequence :: Sequence -> Eval [Integer]
+evalSequence :: Sequence -> Eval [Int]
 evalSequence s = concat <$> mapM expandElement s
   where expandElement e = case e of
           SequenceValue v  -> evalSequenceValue v

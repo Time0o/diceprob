@@ -14,8 +14,8 @@ import Diceprob.Dice (Dice, dSeq, dValues, dType)
 import Diceprob.Integer
 import Diceprob.Op
 
-data Value = Integer Integer
-           | Sequence [Integer]
+data Value = Integer Int
+           | Sequence [Int]
            | Dice Dice
            | DiceCollection [Dice]
            deriving (Eq, Show)
@@ -44,13 +44,13 @@ valueSequenceBinaryOp op s s' = case (s, s') of
   (Sequence x, y)          -> Dice    $ op (dSeq [sum x]) (valueToDice y)
   _                        -> valueBinaryOp op s s'
 
-valueToInteger :: Value -> Integer
+valueToInteger :: Value -> Int
 valueToInteger v = case v of
   Integer x  -> x
   Sequence x -> sum x
   _          -> undefined
 
-valueToSequence :: Value -> [Integer]
+valueToSequence :: Value -> [Int]
 valueToSequence v = case v of
   Integer x        -> [x]
   Sequence x       -> x
@@ -76,9 +76,9 @@ valueToText v = case v of
     where m = fromString . show . length $ x
           d = valueToText . Dice . head $ x
 
-valueLength :: Value -> Integer
+valueLength :: Value -> Int
 valueLength v = case v of
-  Integer x        -> fromIntegral . length . show $ x
-  Sequence x       -> fromIntegral . length $ x
+  Integer x        -> length . show $ x
+  Sequence x       -> length x
   Dice x           -> 1
-  DiceCollection x -> fromIntegral . length $ x
+  DiceCollection x -> length x

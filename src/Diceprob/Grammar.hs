@@ -24,7 +24,7 @@ data OutputExpr = NamedOutput ValueExpr [Either Text Text]
                 | UnnamedOutput ValueExpr
                 deriving (Show)
 
-data ValueExpr = IntegerLiteral Integer
+data ValueExpr = IntegerLiteral Int
                | SequenceLiteral Sequence
                | DiceLiteral ValueExpr
                | DiceCollectionLiteral ValueExpr ValueExpr
