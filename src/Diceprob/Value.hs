@@ -7,12 +7,12 @@ module Diceprob.Value where
 import Prelude hiding (toInteger)
 
 import Data.List (foldl1')
-import Data.String (fromString)
 import Data.Text (Text)
 
 import Diceprob.Dice (Dice, dSeq, dValues, dType)
 import Diceprob.Integer
 import Diceprob.Op
+import Diceprob.Text (textShow)
 
 data Value = Integer Int
            | Sequence [Int]
@@ -66,14 +66,14 @@ valueToDice v = case v of
 
 valueToText :: Value -> Text
 valueToText v = case v of
-  Integer x  -> fromString . show $ x
+  Integer x  -> textShow $ x
   Sequence _ -> "{?}"
   Dice x -> case dType x of
-    Left n   -> fromString $ "d" ++ show n
+    Left n   -> "d" <> textShow n
     Right [] -> "d{}"
     Right _  -> "d{?}"
   DiceCollection x -> m <> d
-    where m = fromString . show . length $ x
+    where m = textShow . length $ x
           d = valueToText . Dice . head $ x
 
 valueLength :: Value -> Int
