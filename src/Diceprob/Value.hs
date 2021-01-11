@@ -11,6 +11,7 @@ import Data.List (foldl1')
 import Data.Text (Text)
 
 import Diceprob.Dice (Dice, dSeq, dValues, dType, dKeep)
+import Diceprob.Error
 import Diceprob.Integer
 import Diceprob.Op
 import Diceprob.Text
@@ -96,4 +97,7 @@ valueAccess vi v = case (vi, v) of
   (Integer i, Dice x)           -> Dice $ if i == 1 then x else dSeq [0]
   (Integer i, DiceCollection x) -> Dice $ dKeep x [i]
   -- XXX Sequences
-  _                             -> error "position selector must be number or sequence"
+  _                             -> valueError err_access vi
+
+valueError :: Text -> Value -> a
+valueError msg v = errorf msg (valueToText v)

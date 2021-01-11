@@ -19,6 +19,7 @@ import Data.Text (Text)
 import Data.HashMap.Strict (HashMap, empty, insert, lookup)
 
 import Diceprob.Dice (Dice, dn, mdn)
+import Diceprob.Error
 import Diceprob.Grammar
 import Diceprob.Op
 import Diceprob.Value
@@ -48,7 +49,7 @@ evalLoopExpr (Loop var over stmt) = do
   over' <- evalValueExpr over
   case over' of
     Sequence over'' -> mapM exec over''
-    _               -> error "can only iterate over sequences"
+    v               -> valueError err_loop_var v
     where assign x = modify $ insert var (Integer x)
           exec   x = assign x >> evalStmt stmt
 
@@ -58,7 +59,7 @@ evalBranchExpr expr = case expr of
    cond' <- evalValueExpr cond
    case cond' of
      Integer i -> if i == 0 then elseStmt' else ifStmt'
-     _         -> error "condition must be integer"
+     v         -> valueError err_cond_var v
      where ifStmt'   = evalStmt ifStmt
            elseStmt' = case maybeElseStmt of
               Nothing       -> return []
@@ -91,7 +92,8 @@ evalSequenceRange (Range from to) = do
   to'   <- evalValueExpr to
   case (from', to') of
     (Integer from'', Integer to'') -> return [from''..to'']
-    _                              -> error "sequence range must begin and end with integer"
+    (_, Integer _)                 -> valueError err_seq_range_to to'
+    _                              -> valueError err_seq_range_to from'
 
 evalSequenceRepeat :: Repeat -> Eval [Int]
 evalSequenceRepeat r = do
@@ -103,7 +105,7 @@ evalSequenceRepeat r = do
               RepeatRange _ t -> evalValueExpr t
     case times of
       Integer times' -> return . concat . replicate times' $ what
-      _              -> error "sequence multiplier must be an integer"
+      v              -> valueError err_seq_repeat v
 
 evalSequence :: Sequence -> Eval [Int]
 evalSequence s = concat <$> mapM expandElement s
@@ -117,7 +119,7 @@ evalVariable var = do
   env <- get
   case lookup var env of
     Just x  -> return x
-    Nothing -> error $ "variable '" ++ show var ++ "' not defined"
+    Nothing -> errorf err_var var
 
 evalValueExpr :: ValueExpr -> Eval Value
 evalValueExpr expr = case expr of
