@@ -87,17 +87,29 @@ valueLength v = case v of
 
 valueAccess :: Value -> Value -> Value
 valueAccess vi v = case (vi, v) of
-  (Integer i, Integer _)        -> Integer $ if i <= 0 || i > textLength t
-                                             then 0
-                                             else digitToInt $ textAt t (i - 1)
-                                     where t = valueToText v
-  (Integer i, Sequence x)       -> Integer $ if i <= 0 || i > length x
-                                             then 0
-                                             else x !! (i - 1)
-  (Integer i, Dice x)           -> Dice $ if i == 1 then x else dSeq [0]
-  (Integer i, DiceCollection x) -> Dice $ dKeep x [i]
-  -- XXX Sequences
-  _                             -> valueError err_access vi
+  (Integer  i, Integer x)        -> Integer $ digitAt x i
+  (Integer  i, Sequence x)       -> Integer $ sequenceAt x i
+  (Integer  i, Dice x)           -> Dice    $ diceAt x i
+  (Integer  i, DiceCollection x) -> Dice    $ dKeep x [i]
+  (Sequence i, Integer x)        -> Integer $ sum . map (digitAt x) $ i
+  (Sequence i, Sequence x)       -> Integer $ sum . map (sequenceAt x) $ i
+  (Sequence i, Dice x)           -> Dice    $ foldl1' (#+) . map (diceAt x) $ i
+  (Sequence i, DiceCollection x) -> Dice    $ dKeep x i
+  _                              -> valueError err_access vi
+
+digitAt :: Int -> Int -> Int
+digitAt n i = let t = show n
+              in if i <= 0 || i > length t
+                 then 0
+                 else digitToInt $ t !! (i - 1)
+
+sequenceAt :: [Int] -> Int -> Int
+sequenceAt s i = if i <= 0 || i > length s
+                 then 0
+                 else s !! (i - 1)
+
+diceAt :: Dice -> Int -> Dice
+diceAt d i = if i == 1 then d else dSeq [0]
 
 valueError :: Text -> Value -> a
 valueError msg v = errorf msg (valueToText v)
