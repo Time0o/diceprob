@@ -1,7 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 
 module Diceprob.Eval (
-  Output,
   Eval,
   eval,
   evalStmt,
@@ -22,9 +21,8 @@ import Diceprob.Dice (Dice, dn, mdn)
 import Diceprob.Error
 import Diceprob.Grammar
 import Diceprob.Op
+import Diceprob.Output (Output)
 import Diceprob.Value
-
-type Output = (Dice, Maybe Text)
 
 type Eval = State (HashMap Text Value)
 

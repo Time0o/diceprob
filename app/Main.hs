@@ -2,10 +2,16 @@
 
 {-# LANGUAGE DeriveDataTypeable #-}
 
+import Prelude hiding (putStrLn)
+
+import Data.Text.IO (putStrLn)
+
 import System.Console.CmdArgs
 
 import Diceprob.AST (buildAST, debugAST)
 import Diceprob.Eval (eval, evalStmt)
+import Diceprob.Output
+import Diceprob.Text (textShow)
 
 data Diceprob = Diceprob {script :: String}
                 deriving (Data, Show, Typeable)
@@ -30,5 +36,5 @@ main = do
   case maybeScript of
     Nothing  -> error "no input file specified"
     Just buf -> case buildAST buf of
-      Left parseError -> putStrLn . debugAST $ parseError
-      Right stmt      -> putStrLn . show . eval evalStmt $ stmt
+      Left parseError -> putStrLn . textShow . debugAST $ parseError
+      Right stmt      -> putStrLn . outputsToExport . eval evalStmt $ stmt

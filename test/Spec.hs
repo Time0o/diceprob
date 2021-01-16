@@ -12,6 +12,7 @@ import Diceprob.AST (AST, debugAST)
 import Diceprob.Dice
 import Diceprob.Eval
 import Diceprob.Op
+import Diceprob.Output
 import Diceprob.Parser
 import Diceprob.Value
 

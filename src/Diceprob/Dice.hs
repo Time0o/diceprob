@@ -13,6 +13,11 @@ module Diceprob.Dice (
   dType,
   dKeep,
   uniformPMF,
+  pmf,
+  pmfMean,
+  pmfVar,
+  pmfMin,
+  pmfMax,
   pmfEqual
 ) where
 
@@ -104,6 +109,18 @@ uniformPMF domain = zip domain (replicate n p)
 crossPMF :: [PMF] -> [([Int], Double)]
 crossPMF pmfs = map collect $ sequence pmfs
   where collect comb = (reverse . sort . map fst $ comb, product . map snd $ comb)
+
+pmfMean :: PMF -> Double
+pmfMean pmf' = foldl' (\m (x,p) -> m + fromIntegral x * p) 0.0 pmf'
+
+pmfVar :: PMF -> Double
+pmfVar pmf' = foldl' (\sd (x,p) -> sd + (fromIntegral x)^2 * p) 0.0 pmf' - pmfMean pmf'
+
+pmfMin :: PMF -> Int
+pmfMin = fst . head
+
+pmfMax :: PMF -> Int
+pmfMax = fst . last
 
 pmfEqual :: PMF -> Dice -> Bool
 pmfEqual pmf' d = (v == v') && (all id $ zipWith approxEq p p')
