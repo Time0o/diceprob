@@ -21,7 +21,6 @@ module Diceprob.Dice (
   pmfEqual
 ) where
 
-import Data.AEq ((~==))
 import Data.List (foldl', foldl1', groupBy, sort)
 
 import Diceprob.Bool (fromBool)
@@ -116,7 +115,7 @@ pmfMean pmf' = foldl' (\m (x,p) -> m + fromIntegral x * p) 0.0 pmf'
 pmfSd :: PMF -> Double
 pmfSd pmf' = sqrt s
   where m = pmfMean pmf'
-        s = foldl' (\sd (x,p) -> sd + (fromIntegral x - m)^2 * p) 0.0 pmf'
+        s = foldl' (\sd (x,p) -> sd + (fromIntegral x - m)^(2 :: Integer) * p) 0.0 pmf'
 
 pmfMin :: PMF -> Int
 pmfMin = fst . head

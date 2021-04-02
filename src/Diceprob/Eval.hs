@@ -17,7 +17,7 @@ import Data.List (foldl1')
 import Data.Text (Text)
 import Data.HashMap.Strict (HashMap, empty, insert, lookup)
 
-import Diceprob.Dice (Dice, dn, mdn)
+import Diceprob.Dice (dn, mdn)
 import Diceprob.Error
 import Diceprob.Grammar
 import Diceprob.Op
