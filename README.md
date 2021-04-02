@@ -2,7 +2,8 @@
 
 Diceprob is an interpreter for the scripting language used by
 [AnyDice](https://anydice.com/). It should make it possible to run AnyDice
-scripts locally.
+scripts locally. It produces text output in the "normal" data format and
+supports all major AnyDice features except function calls.
 
 ## Installation
 
@@ -13,59 +14,46 @@ Via [stack](https://docs.haskellstack.org/en/stable/README/).
 Given a file `test.ad`, containing:
 
 ```
-X: 2
-output X + d6
-X: X * 2
-output X + d6 * d4
+loop M over {1..3} {
+  \ roll two dice of size 2/4/6 \
+  N: M * 2
+  output 2dN named "two [N] sided dice"
+}
 ```
 
 Diceprob should output:
 
 ```
-"output 1",5.499999999999999,27.666666666666664,3,8
+"two 2 sided dice",3.0,6.5,2,4
 #,%
-3,0.16666666666666666
-4,0.16666666666666666
-5,0.16666666666666666
-6,0.16666666666666666
-7,0.16666666666666666
-8,0.16666666666666666
+2,0.25
+3,0.5
+4,0.25
 
-"output 2",12.749999999999998,186.99999999999997,5,28
+"two 4 sided dice",5.0,22.5,2,8
 #,%
-5,4.1666666666666664e-2
-6,8.333333333333333e-2
-7,8.333333333333333e-2
-8,0.125
-9,4.1666666666666664e-2
-10,0.125
-12,8.333333333333333e-2
-13,4.1666666666666664e-2
-14,4.1666666666666664e-2
-16,0.125
-19,4.1666666666666664e-2
-20,4.1666666666666664e-2
-22,4.1666666666666664e-2
-24,4.1666666666666664e-2
-28,4.1666666666666664e-2
+2,6.25e-2
+3,0.125
+4,0.1875
+5,0.25
+6,0.1875
+7,0.125
+8,6.25e-2
+
+"two 6 sided dice",7.0,47.833333333333336,2,12
+#,%
+2,2.7777777777777776e-2
+3,5.555555555555555e-2
+4,8.333333333333333e-2
+5,0.1111111111111111
+6,0.1388888888888889
+7,0.16666666666666669
+8,0.1388888888888889
+9,0.1111111111111111
+10,8.333333333333333e-2
+11,5.555555555555555e-2
+12,2.7777777777777776e-2
 ```
 
 In general, output produced by Diceprob and AnyDice should be identical (but it
 most likely still isn't for some corner cases).
-
-## Status
-
-### Language Features
-
-The following language features are not yet implemented:
-
-| Feature          | Status  |
-| ---------------- | ------- |
-| Arbitrary dice   | missing |
-| Functions        | missing |
-| Standard Library | missing |
-
-### Output
-
-Currently, Diceprob can only output results equivalent to what AnyDice produces
-when "View" is set to "Export" and "Data" is set to "Normal".
