@@ -15,7 +15,7 @@ module Diceprob.Dice (
   uniformPMF,
   pmf,
   pmfMean,
-  pmfVar,
+  pmfSd,
   pmfMin,
   pmfMax,
   pmfEqual
@@ -113,8 +113,10 @@ crossPMF pmfs = map collect $ sequence pmfs
 pmfMean :: PMF -> Double
 pmfMean pmf' = foldl' (\m (x,p) -> m + fromIntegral x * p) 0.0 pmf'
 
-pmfVar :: PMF -> Double
-pmfVar pmf' = foldl' (\sd (x,p) -> sd + (fromIntegral x)^2 * p) 0.0 pmf' - pmfMean pmf'
+pmfSd :: PMF -> Double
+pmfSd pmf' = sqrt s
+  where m = pmfMean pmf'
+        s = foldl' (\sd (x,p) -> sd + (fromIntegral x - m)^2 * p) 0.0 pmf'
 
 pmfMin :: PMF -> Int
 pmfMin = fst . head

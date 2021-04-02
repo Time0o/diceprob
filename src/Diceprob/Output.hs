@@ -9,7 +9,7 @@ module Diceprob.Output (
 
 import Data.Text (Text, intercalate)
 
-import Diceprob.Dice (Dice, pmf, pmfMean, pmfVar, pmfMin, pmfMax)
+import Diceprob.Dice (Dice, pmf, pmfMean, pmfSd, pmfMin, pmfMax)
 import Diceprob.Text (textShow)
 
 type Output = (Dice, Maybe Text)
@@ -17,7 +17,7 @@ type Output = (Dice, Maybe Text)
 outputToExport :: Int -> Output -> Text
 outputToExport i (d, name) = joinLines [outputHeader, "#,%", pmfShowTxt]
   where pmfShow       = map (\(x,p) -> textShow x <> "," <> textShow p)
-        pmfStat pmf'  = [pmfMean pmf', pmfVar pmf']
+        pmfStat pmf'  = [pmfMean pmf', pmfSd pmf']
         pmfRange pmf' = [pmfMin pmf', pmfMax pmf']
         pmfShowTxt    = joinLines . pmfShow $ pmf d
         pmfStatTxt    = joinList . map textShow . pmfStat $ pmf d
